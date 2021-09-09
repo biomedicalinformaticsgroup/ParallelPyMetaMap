@@ -43,7 +43,7 @@ On top of these two mandatory parameters we have:
 ## Important
  [MetaMap](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap.html) comes with a license. Please make sure you are following the terms of the licence when using MetaMap and its result. 
 
-## Extra ressources
+## Extra resources
 [MetaMap](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap.html)
 
 ## FAQ
