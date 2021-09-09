@@ -83,9 +83,9 @@ def annotation_func(df, batch, batch_size, restrict_to_sources, verbose, mm):
                 'negation': negation,
                 'cui': list_of_cuis,
                 'annotation': list_of_annotations,
-                'master_df2_idx' : idx
+                'retrieved_df2_idx' : idx
                 })
-            pickle.dump(annotated_df, open(f'master_annotated_working_df2_{batch}.p', 'wb'))
+            pickle.dump(annotated_df, open(f'retrieved_annotated_content_df2_{batch}.p', 'wb'))
                 
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
@@ -98,9 +98,9 @@ def annotation_func(df, batch, batch_size, restrict_to_sources, verbose, mm):
         'negation': negation,
         'cui': list_of_cuis,
         'annotation': list_of_annotations,
-        'master_df2_idx' : idx
+        'retrieved_df2_idx' : idx
         })
-    pickle.dump(annotated_df, open(f'master_annotated_working_df2_{batch}.p', 'wb'))
+    pickle.dump(annotated_df, open(f'retrieved_annotated_content_df2_{batch}.p', 'wb'))
                       
 
 def parralelism_metamap(numbers_of_cores,
@@ -142,7 +142,7 @@ def parralelism_metamap(numbers_of_cores,
 
     update = False
 
-    retrieved_path = [path for path in Path('./').iterdir() if path.stem == 'master_annotated_working_df2']
+    retrieved_path = [path for path in Path('./').iterdir() if path.stem == 'retrieved_annotated_content_df2']
     if len(retrieved_path) == 0:
         update = False
     elif retrieved_path[0]:
@@ -153,14 +153,14 @@ def parralelism_metamap(numbers_of_cores,
 
     if update == True:
 
-        df_processed = pickle.load(open('master_annotated_working_df2.p', 'rb'))
+        df_processed = pickle.load(open('retrieved_annotated_content_df2.p', 'rb'))
 
         list_original_index = []
         for i in range(len(df)):
             list_original_index.append(df.index[i])
 
         list_check_index = []
-        list_check_index = list(np.unique(df_processed.master_df2_idx))
+        list_check_index = list(np.unique(df_processed.retrieved_df2_idx))
 
         list_to_do = list(set(list_original_index) - set(list_check_index))
 
@@ -193,21 +193,21 @@ def parralelism_metamap(numbers_of_cores,
     with mp.Pool(numbers_of_cores) as pool:
         pool.starmap(annotation_func, data)
     
-    concat_df = pickle.load(open(f'master_annotated_working_df2_1.p', 'rb'))
+    concat_df = pickle.load(open(f'retrieved_annotated_content_df2_1.p', 'rb'))
     if numbers_of_cores > 1:
         for i in range(par_core):
-            df_dynamic = pickle.load(open(f'master_annotated_working_df2_{i+1}.p', 'rb'))
+            df_dynamic = pickle.load(open(f'retrieved_annotated_content_df2_{i+1}.p', 'rb'))
             concat_df = pd.concat([concat_df, df_dynamic])
 
 
-    pickle.dump(concat_df, open(f'master_annotated_working_df.p', 'wb'))
+    pickle.dump(concat_df, open(f'retrieved_annotated_content_df.p', 'wb'))
     
     if update == True:
         final_df = pd.concat([df_processed, concat_df])
     else:
         final_df = concat_df
 
-    pickle.dump(final_df, open(f'master_annotated_working_df2.p', 'wb'))
+    pickle.dump(final_df, open(f'retrieved_annotated_content_df2.p', 'wb'))
 
 
     now = datetime.now()
