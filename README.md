@@ -37,7 +37,7 @@ parralelism_metamap(NUMBER_OF_CORES_TO_USE,
 On top of these two mandatory parameters we have:
 - path_to_file: You can provide the directory to the file you want to annotate.
 - file: You can input the DataFrame directly into the script instead of providing the path to the file.
-- restrict_to_sources: Metamap contains multiple data sources, you can provide a list of data sources you would like to restrict Metamap to.
+- restrict_to_sources: Metamap contains multiple [data sources](https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html), you can provide a list of data sources you would like to restrict Metamap to.
 - verbose: verbose is an extra parameter for your confort. When set to False, you will not see the live processing of MetaMap to be able to focus on the warning and the current status of the processing. When changing from False to True, you will add the MetaMap processing information on top of our information
 
 ## Important
