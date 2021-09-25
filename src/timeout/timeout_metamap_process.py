@@ -14,7 +14,7 @@ def timeout_metamap_process(timeout = 10800, username = None):
         timeout = 300
         
     regular_check = 600
-    if timeout < regular_check:
+    if timeout <= regular_check:
         regular_check = timeout * 0.9
 
     time.sleep(regular_check)
