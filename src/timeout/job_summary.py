@@ -12,6 +12,7 @@ def job_summary(username = None):
     command = list(command)
     if command[1] == '':
         command = []
+        jobs = []
     else:
         command = command[1]
         my_list = []
@@ -19,8 +20,7 @@ def job_summary(username = None):
             my_list.append(str(command).split('\n')[i])
         command = my_list
         jobs = command
-    if len(jobs) > 0:
-        
+    if len(jobs) > 0:    
         print(f'looks like the job ParallelPyMetaMap is still running')
         running = True
         user = []

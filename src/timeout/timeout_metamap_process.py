@@ -10,7 +10,7 @@ from ParallelPyMetaMap.src.timeout import job_summary
 def timeout_metamap_process(timeout = 10800, username = None):
     
     if timeout < 300:
-        print('timeout too low, raising timeout to 5 minutes')
+        print(f'\ntimeout too low, raising timeout to 5 minutes\n')
         timeout = 300
         
     regular_check = 600
@@ -34,15 +34,16 @@ def timeout_metamap_process(timeout = 10800, username = None):
                 time_kill.append(result.iloc[i].time)
         
         print(f'{len(result)} processe(s) is/are currently working')
-        print(f'{len(job_kill)} processe(s) exceeded timeout. Now we will abort this/these processe(s)')
+        print(f'{len(job_kill)} processe(s) exceeded timeout.')
 
         if len(job_kill) > 0:
+            print('Now we will abort this/these processe(s)')
             for i in range(len(job_kill)):
                 os.kill(int(job_kill[i]), signal.SIGTERM)
-                print(f'Killing job id {job_kill[i]} after {time_kill[i]} minutes')
+                print(f'Killing job id {job_kill[i]} after {time_kill[i]} minutes\n')
                 time.sleep(10)
         else:
-            print('All jobs are working correctly')
+            print(f'All jobs are working correctly\n')
             
         next_check = []    
         for i in range(len(result)):
@@ -60,4 +61,4 @@ def timeout_metamap_process(timeout = 10800, username = None):
 
         now = datetime.now()
         print(f'\n\n----------------------------------\n\nThe Time of this check is {now}')
-        print('All jobs finished')
+        print(f'All jobs finished\n')
