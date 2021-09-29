@@ -25,7 +25,37 @@ def concept2dict(concepts):
         d[c.index].append(c._asdict())
     return d
 
-def annotation_func(df, batch, batch_size, restrict_to_sources, verbose, mm):
+def annotation_func(df, 
+                    batch, 
+                    batch_size, 
+                    mm,
+                    composite_phrase,
+                    filename,
+                    file_format,
+                    allow_acronym_variants,
+                    word_sense_disambiguation,
+                    allow_large_n,
+                    strict_model,
+                    relaxed_model,
+                    allow_overmatches,
+                    allow_concept_gaps,
+                    term_processing,
+                    no_derivational_variants,
+                    derivational_variants,
+                    ignore_word_order,
+                    unique_acronym_variants,
+                    prefer_multiple_concepts,
+                    ignore_stop_phrases,
+                    compute_all_mappings,
+                    prune,
+                    mm_data_version,
+                    verbose,
+                    exclude_sources,
+                    restrict_to_sources,
+                    restrict_to_sts,
+                    exclude_sts,
+                    no_nums):
+
     list_of_semtypes = []
     list_of_cuis = []
     list_of_preferred_names = []
@@ -47,12 +77,33 @@ def annotation_func(df, batch, batch_size, restrict_to_sources, verbose, mm):
             term = [term]
             ids = list(range(len(term)))
             concepts, error = mm.extract_concepts(term, 
-                                                 ids = ids, 
-                                                 restrict_to_sources = restrict_to_sources,
-                                                 ignore_stop_phrases = True,
-                                                 word_sense_disambiguation=True,
-                                                 verbose=verbose,
-                                                 no_derivational_variants=True)
+                                                 ids, 
+                                                 composite_phrase,
+                                                 filename,
+                                                 file_format,
+                                                 allow_acronym_variants,
+                                                 word_sense_disambiguation,
+                                                 allow_large_n,
+                                                 strict_model,
+                                                 relaxed_model,
+                                                 allow_overmatches,
+                                                 allow_concept_gaps,
+                                                 term_processing,
+                                                 no_derivational_variants,
+                                                 derivational_variants,
+                                                 ignore_word_order,
+                                                 unique_acronym_variants,
+                                                 prefer_multiple_concepts,
+                                                 ignore_stop_phrases,
+                                                 compute_all_mappings,
+                                                 prune,
+                                                 mm_data_version,
+                                                 verbose,
+                                                 exclude_sources,
+                                                 restrict_to_sources,
+                                                 restrict_to_sts,
+                                                 exclude_sts,
+                                                 no_nums)
             data = concept2dict(concepts)
             text = str
             neg = 0
@@ -107,8 +158,32 @@ def parralelism_metamap(numbers_of_cores,
                         path_to_metamap,
                         path_to_file = None,
                         file = None,
-                        restrict_to_sources= [],
-                        verbose = False):
+                        composite_phrase=4,
+                        filename=None,
+                        file_format='sldi',
+                        allow_acronym_variants=False,
+                        word_sense_disambiguation=False,
+                        allow_large_n=False,
+                        strict_model=False,
+                        relaxed_model=False,
+                        allow_overmatches=False,
+                        allow_concept_gaps=False,
+                        term_processing=False,
+                        no_derivational_variants=False,
+                        derivational_variants=False,
+                        ignore_word_order=False,
+                        unique_acronym_variants=False,
+                        prefer_multiple_concepts=False,
+                        ignore_stop_phrases=False,
+                        compute_all_mappings=False,
+                        prune=False,
+                        mm_data_version=False,
+                        verbose=False,
+                        exclude_sources=[],
+                        restrict_to_sources=[],
+                        restrict_to_sts=[],
+                        exclude_sts=[],
+                        no_nums=[]):
 
     if numbers_of_cores >= mp.cpu_count():
         return 'The number of cores you want to use is equal or greater than the numbers of cores in your machine. We stop the script now'
@@ -179,16 +254,28 @@ def parralelism_metamap(numbers_of_cores,
         data = []
         for i in range(par_core):
             if i == 0:
-                current_data = (df[:round(len(df)/par_core)], i+1, batch_size, restrict_to_sources, verbose, mm)
+                current_data = (df[:round(len(df)/par_core)], i+1, batch_size, mm, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                        allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
+                        derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
+                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             elif i > 0 and i+1 != par_core:
-                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, batch_size, restrict_to_sources, verbose, mm)
+                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, batch_size, mm, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                        allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
+                        derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
+                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             else:
-                current_data = (df[round(len(df)/par_core)*i:], i+1, batch_size, restrict_to_sources, verbose, mm)
+                current_data = (df[round(len(df)/par_core)*i:], i+1, batch_size, mm, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                        allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
+                        derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
+                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
     else:
-        data = [(df, 1, batch_size, restrict_to_sources, verbose, mm)]
+        data = [(df, 1, batch_size, mm, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                        allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
+                        derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
+                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)]
 
     with mp.Pool(numbers_of_cores) as pool:
         pool.starmap(annotation_func, data)
