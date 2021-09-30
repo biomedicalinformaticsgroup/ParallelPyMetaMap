@@ -42,5 +42,5 @@ def job_summary(username = None):
         
     else:
         print('looks like the job is no longer running')
-        runnning = False
+        running = False
     return result, running
