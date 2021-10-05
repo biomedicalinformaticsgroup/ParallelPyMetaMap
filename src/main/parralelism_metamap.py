@@ -21,6 +21,7 @@ def output_files(column_name, extension):
     for path in [f'output_ParallelPyMetaMap_{column_name}',
                 f'output_ParallelPyMetaMap_{column_name}/annotated_df',
                 f'output_ParallelPyMetaMap_{column_name}/temporary_df',
+                f'output_ParallelPyMetaMap_{column_name}/to_avoid',
                 f'output_ParallelPyMetaMap_{column_name}/{extension}_files'
                 ]:
         try:
@@ -147,7 +148,27 @@ def annotation_func(df,
                         f.close()
                     elif extension_format == 'terminal':
                         f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
-                        f.write(str('USER|') + str(data[str(0)][i].get('mm')) + str('|') + str(data[str(0)][i].get('score')) + str('|') + str(data[str(0)][i].get('preferred_name')) + str('|') + str(data[str(0)][i].get('cui')) + str('|') + str(data[str(0)][i].get('semtypes')) + str('|') + str(data[str(0)][i].get('trigger')) + str('|') + str(data[str(0)][i].get('location')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('|') + str(data[str(0)][i].get('tree_codes')) + str(('\n'))) 
+                        f.write(str('USER|') + str(data[str(0)][i].get('mm')) + str('|') + str(data[str(0)][i].get('score')) + str('|') + str(data[str(0)][i].get('preferred_name')) + str('|') + str(data[str(0)][i].get('cui')) + str('|') + str(data[str(0)][i].get('semtypes')) + str('|') + str(data[str(0)][i].get('trigger')) + str('|') + str(data[str(0)][i].get('location')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('|') + str(data[str(0)][i].get('tree_codes')) + str('\n')) 
+                        f.close()
+
+                if 'aa' in data[str(0)][i]:
+                    if extension_format == 'dict':
+                        f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
+                        f.write(str(str(data[str(0)][i]) + ('\n')))
+                        f.close()
+                    elif extension_format == 'terminal':
+                        f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
+                        f.write(str('USER|') + str(data[str(0)][i].get('aa')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
+                        f.close()
+
+                if 'ua' in data[str(0)][i]:
+                    if extension_format == 'dict':
+                        f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
+                        f.write(str(str(data[str(0)][i]) + ('\n')))
+                        f.close()
+                    elif extension_format == 'terminal':
+                        f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
+                        f.write(str('USER|') + str(data[str(0)][i].get('ua')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
                         f.close()
 
         if (j % 100 == 0 and j != 0):
@@ -288,6 +309,14 @@ def parralelism_metamap(numbers_of_cores,
 
         list_to_do = list(set(list_original_index) - set(list_check_index))
 
+        file_avoid = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", 'r')
+        Lines = file_avoid.readlines()
+        list_avoid = []
+        for line in Lines:
+            list_avoid.append(line.strip())
+
+        list_to_do = list(set(list_to_do) - set(list_avoid))
+
         subset_list_update = list_to_do
 
         df = df[df[unique_id].isin(subset_list_update)]
@@ -296,6 +325,9 @@ def parralelism_metamap(numbers_of_cores,
             return None
         if len(df) < par_core:
             par_core = len(df)
+    else:
+        f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
+        f.close()
 
     mm = MetaMap.get_instance(path_to_metamap)
 
@@ -348,6 +380,13 @@ def parralelism_metamap(numbers_of_cores,
 
     pickle.dump(final_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
 
+    list1 = np.unique(df[unique_id])
+    list2 = np.unique(concat_df[unique_id])
+    avoid = np.setdiff1d(list1,list2)
+    for i in range(len(avoid)):
+        f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
+        f.write(str(avoid[i]) + str('\n'))
+        f.close()
 
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
