@@ -86,7 +86,6 @@ def annotation_func(df,
     for j in range(len(df[column_name])):
         now = datetime.now()
         current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
-        print(str(current_time) + str(' We are starting processing row number ') + str(j+1+int((batch-1)*batch_size)))
         print(str(current_time) + str(' We are at row ') + str(j+1) + str(' out of ') + str(len(df)) + str(' from proccess ') + bold.BEGIN + str(batch) + bold.END)
         print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str(round((float(j)/float(len(df)))*100, 2)) + str('%') + bold.END)
         print(str(current_time) + str(' Processing ') + str(df.iloc[j][unique_id]))
@@ -201,7 +200,6 @@ def annotation_func(df,
         })
     pickle.dump(annotated_df, open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{batch}.p', 'wb'))
                       
-
 def parralelism_metamap(numbers_of_cores,
                         path_to_metamap,
                         column_name = 'content_text',
@@ -257,7 +255,13 @@ def parralelism_metamap(numbers_of_cores,
     else:
         return 'You did not input any data to process'
         exit()
-    
+
+    if extension_format == 'dict' or extension_format == 'terminal':
+        pass
+    else:
+        return "Your extension_format parameter should be equal to 'dict' or 'terminal' please enter a valid parameter."
+        exit()
+
     if len(df) < par_core:
             par_core = len(df)
     
@@ -383,6 +387,7 @@ def parralelism_metamap(numbers_of_cores,
     list1 = np.unique(df[unique_id])
     list2 = np.unique(concat_df[unique_id])
     avoid = np.setdiff1d(list1,list2)
+
     for i in range(len(avoid)):
         f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
         f.write(str(avoid[i]) + str('\n'))
