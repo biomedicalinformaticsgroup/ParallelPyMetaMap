@@ -238,7 +238,8 @@ def parralelism_metamap(numbers_of_cores,
     output_files(column_name, extension)
 
     if numbers_of_cores >= mp.cpu_count():
-        return 'The number of cores you want to use is equal or greater than the numbers of cores in your machine. We stop the script now'
+        print('The number of cores you want to use is equal or greater than the numbers of cores in your machine. We stop the script now')
+        return None
         exit()
     elif numbers_of_cores < 4:
         par_core = 1
@@ -246,20 +247,23 @@ def parralelism_metamap(numbers_of_cores,
         par_core = (numbers_of_cores - 2)
 
     if path_to_file != None and file != None:
-        return 'You need to input either a path to a Pickle object or a Pandas DataFrame. You can not input both!'
+        print('You need to input either a path to a Pickle object or a Pandas DataFrame. You can not input both!')
+        return None
         exit()
     elif path_to_file != None:
         df = pickle.load(open(path_to_file, 'rb'))
     elif type(file) == pd.core.frame.DataFrame:
         df = file
     else:
-        return 'You did not input any data to process'
+        print('You did not input any data to process')
+        return None
         exit()
 
     if extension_format == 'dict' or extension_format == 'terminal':
         pass
     else:
-        return "Your extension_format parameter should be equal to 'dict' or 'terminal' please enter a valid parameter."
+        print("Your extension_format parameter should be equal to 'dict' or 'terminal' please enter a valid parameter.")
+        return None
         exit()
 
     if len(df) < par_core:
@@ -327,6 +331,7 @@ def parralelism_metamap(numbers_of_cores,
         if len(df) == 0:
             print('No new row since last time.')
             return None
+            exit()
         if len(df) < par_core:
             par_core = len(df)
     else:
