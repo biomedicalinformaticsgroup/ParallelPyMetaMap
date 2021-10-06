@@ -169,6 +169,11 @@ def annotation_func(df,
                         f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
                         f.write(str('USER|') + str(data[str(0)][i].get('ua')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
                         f.close()
+        
+        if df.iloc[j][unique_id] not in idx:
+            f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
+            f.write(str(df.iloc[j][unique_id]) + str('\n'))
+            f.close()
 
         if (j % 100 == 0 and j != 0):
             now = datetime.now()
@@ -375,7 +380,7 @@ def parralelism_metamap(numbers_of_cores,
     
     concat_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_1.p', 'rb'))
     if par_core > 1:
-        for i in range(par_core):
+        for i in range(1,par_core):
             df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
             concat_df = pd.concat([concat_df, df_dynamic])
 
@@ -388,15 +393,6 @@ def parralelism_metamap(numbers_of_cores,
         final_df = concat_df
 
     pickle.dump(final_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
-
-    list1 = np.unique(df[unique_id])
-    list2 = np.unique(concat_df[unique_id])
-    avoid = np.setdiff1d(list1,list2)
-
-    for i in range(len(avoid)):
-        f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
-        f.write(str(avoid[i]) + str('\n'))
-        f.close()
 
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y, %H:%M:%S")

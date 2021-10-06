@@ -39,9 +39,12 @@ def timeout_metamap_process(timeout = 10800, username = None):
         if len(job_kill) > 0:
             print('Now we will abort this/these processe(s)')
             for i in range(len(job_kill)):
-                os.kill(int(job_kill[i]), signal.SIGTERM)
-                print(f'Killing job id {job_kill[i]} after {time_kill[i]} minutes\n')
-                time.sleep(10)
+                try:
+                    os.kill(int(job_kill[i]), signal.SIGTERM)
+                    print(f'Killing job id {job_kill[i]} after {time_kill[i]} minutes\n')
+                    time.sleep(5)
+                except:
+                    pass
         else:
             print(f'All jobs are working correctly\n')
             
@@ -51,6 +54,9 @@ def timeout_metamap_process(timeout = 10800, username = None):
         
         regular_check = timeout - max(next_check)
         regular_check = regular_check + 1
+        
+        if regular_check < 0:
+            regular_check = 0
 
         time.sleep(regular_check)
         now = datetime.now()
