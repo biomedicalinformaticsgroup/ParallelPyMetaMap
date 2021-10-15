@@ -12,40 +12,40 @@ from ParallelPyMetaMap.src.altered_pymetamap.SubprocessBackend import Subprocess
 from ParallelPyMetaMap.src.main.output_files import output_files
 from ParallelPyMetaMap.src.main.annotation_func import annotation_func
                       
-def parralelism_metamap(numbers_of_cores,
-                        path_to_metamap,
-                        column_name = 'content_text',
-                        unique_id = 'pmid',
-                        extension = 'txt',
-                        extension_format = 'terminal',
-                        path_to_file = None,
-                        file = None,
-                        composite_phrase=4,
-                        filename=None,
-                        file_format='sldi',
-                        allow_acronym_variants=False,
-                        word_sense_disambiguation=False,
-                        allow_large_n=False,
-                        strict_model=False,
-                        relaxed_model=False,
-                        allow_overmatches=False,
-                        allow_concept_gaps=False,
-                        term_processing=False,
-                        no_derivational_variants=False,
-                        derivational_variants=False,
-                        ignore_word_order=False,
-                        unique_acronym_variants=False,
-                        prefer_multiple_concepts=False,
-                        ignore_stop_phrases=False,
-                        compute_all_mappings=False,
-                        prune=False,
-                        mm_data_version=False,
-                        verbose=False,
-                        exclude_sources=[],
-                        restrict_to_sources=[],
-                        restrict_to_sts=[],
-                        exclude_sts=[],
-                        no_nums=[]):
+def ppmm(numbers_of_cores,
+        path_to_metamap,
+        column_name = 'content_text',
+        unique_id = 'pmid',
+        extension = 'txt',
+        extension_format = 'terminal',
+        path_to_file = None,
+        file = None,
+        composite_phrase=4,
+        filename=None,
+        file_format='sldi',
+        allow_acronym_variants=False,
+        word_sense_disambiguation=False,
+        allow_large_n=False,
+        strict_model=False,
+        relaxed_model=False,
+        allow_overmatches=False,
+        allow_concept_gaps=False,
+        term_processing=False,
+        no_derivational_variants=False,
+        derivational_variants=False,
+        ignore_word_order=False,
+        unique_acronym_variants=False,
+        prefer_multiple_concepts=False,
+        ignore_stop_phrases=False,
+        compute_all_mappings=False,
+        prune=False,
+        mm_data_version=False,
+        verbose=False,
+        exclude_sources=[],
+        restrict_to_sources=[],
+        restrict_to_sts=[],
+        exclude_sts=[],
+        no_nums=[]):
 
     output_files(column_name, extension)
 
@@ -152,32 +152,29 @@ def parralelism_metamap(numbers_of_cores,
 
     mm = MetaMap.get_instance(path_to_metamap)
 
-    df_size = len(df[column_name])
-    batch_size = round(len(df)/par_core)
-
     if par_core > 1:
         data = []
         for i in range(par_core):
             if i == 0:
-                current_data = (df[:round(len(df)/par_core)], i+1, batch_size, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                current_data = (df[:round(len(df)/par_core)], i+1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             elif i > 0 and i+1 != par_core:
-                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, batch_size, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             else:
-                current_data = (df[round(len(df)/par_core)*i:], i+1, batch_size, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                current_data = (df[round(len(df)/par_core)*i:], i+1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
     else:
-        data = [(df, 1, batch_size, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+        data = [(df, 1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)]

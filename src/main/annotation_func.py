@@ -12,7 +12,6 @@ class bold:
 
 def annotation_func(df, 
                     batch, 
-                    batch_size, 
                     mm,
                     column_name,
                     unique_id,
@@ -50,7 +49,7 @@ def annotation_func(df,
     list_of_preferred_names = []
     list_of_annotations = []
     idx = []
-    occurence = []
+    occurrence = []
     negation = []
     for j in range(len(df[column_name])):
         now = datetime.now()
@@ -108,7 +107,7 @@ def annotation_func(df,
                     text = data[str(0)][i].get('trigger')
                     neg = (int(str(text).count('noun-1')) + int(str(text).count('adj-1')) + int(str(text).count('verb-1')) + int(str(text).count('adv-1')) + int(str(text).count('integer-1')) + int(str(text).count('numeral-1')) + int(str(text).count('prep-1')) + int(str(text).count('number-1')) + int(str(text).count('percentage-1')) + int(str(text).count('conj-1')) + int(str(text).count('ordinal-1')) + int(str(text).count('UNKNOWN-1')) + int(str(text).count('aux-1')) + int(str(text).count('fraction-1')))
                     negation.append(neg)
-                    occurence.append(neg + (int(str(text).count('noun-0')) + int(str(text).count('adj-0')) + int(str(text).count('verb-0')) + int(str(text).count('adv-0')) + int(str(text).count('integer-0')) + int(str(text).count('numeral-0')) + int(str(text).count('prep-0')) + int(str(text).count('number-0')) + int(str(text).count('percentage-0')) + int(str(text).count('conj-0')) + int(str(text).count('ordinal-0')) + int(str(text).count('UNKNOWN-0')) + int(str(text).count('aux-0')) + int(str(text).count('fraction-0'))))
+                    occurrence.append(neg + (int(str(text).count('noun-0')) + int(str(text).count('adj-0')) + int(str(text).count('verb-0')) + int(str(text).count('adv-0')) + int(str(text).count('integer-0')) + int(str(text).count('numeral-0')) + int(str(text).count('prep-0')) + int(str(text).count('number-0')) + int(str(text).count('percentage-0')) + int(str(text).count('conj-0')) + int(str(text).count('ordinal-0')) + int(str(text).count('UNKNOWN-0')) + int(str(text).count('aux-0')) + int(str(text).count('fraction-0'))))
                     idx.append(df.iloc[j][unique_id])
                     if extension_format == 'dict':
                         f = open(f"./output_ParallelPyMetaMap_{column_name}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
@@ -151,7 +150,7 @@ def annotation_func(df,
             annotated_df = pd.DataFrame(
                 {'semantic_type': list_of_semtypes,
                 'umls_preferred_name': list_of_preferred_names,
-                'occurence': occurence,
+                'occurrence': occurrence,
                 'negation': negation,
                 'cui': list_of_cuis,
                 'annotation': list_of_annotations,
@@ -166,7 +165,7 @@ def annotation_func(df,
     annotated_df = pd.DataFrame(
         {'semantic_type': list_of_semtypes,
         'umls_preferred_name': list_of_preferred_names,
-        'occurence': occurence,
+        'occurrence': occurrence,
         'negation': negation,
         'cui': list_of_cuis,
         'annotation': list_of_annotations,

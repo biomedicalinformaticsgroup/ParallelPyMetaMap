@@ -8,6 +8,6 @@ from ParallelPyMetaMap.src import removeNonAscii
 from ParallelPyMetaMap.src import concept2dict
 from ParallelPyMetaMap.src import annotation_func
 from ParallelPyMetaMap.src import output_files
-from ParallelPyMetaMap.src import parralelism_metamap
+from ParallelPyMetaMap.src import ppmm
 from ParallelPyMetaMap.src import job_summary
 from ParallelPyMetaMap.src import timeout_metamap_process

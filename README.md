@@ -28,7 +28,7 @@ It was created to be flexible and to automatically distribute  the data to the n
 Like Cadmus, dynamic generation is important. You can update your annotated dataframe as your Cadmus output grows without re-annotating previously annotated publications.
 
 ```python
-from ParallelPyMetaMap import parralelism_metamap
+from ParallelPyMetaMap import ppmm
 
 parralelism_metamap(NUMBER_OF_CORES_TO_USE, 
                     PATH_TO_METAMAP)
@@ -50,7 +50,7 @@ On top of these two mandatory parameters we have:
 
 Q: One or multiple of my processes are not sending results, what should I do?
 
-A: You should first use the command 'top' (or similar command), in the result you should find a row called METAMAP(version).BINAR, if one of the process exceeded 3 hours, most likely the process will have difficulty to process this current row. You can choose to take the PID number of the process and then run on your terminal 'kill PID number'. When you do that the library will just ignore the current line and continue to the next one.
+A: You should first use the command 'top' (or similar command), in the result you should find a row called METAMAP(version).BINARY, if one of the process exceeded 3 hours, most likely the process will have difficulty to process this current row. You can choose to take the PID number of the process and then run on your terminal 'kill PID number'. When you do that the library will just ignore the current line and continue to the next one.
 
 Q: How to determine the number of cores? 
 
