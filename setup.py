@@ -14,7 +14,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-'os',
 'subprocess',
 'tempfile',
 'datetime',
