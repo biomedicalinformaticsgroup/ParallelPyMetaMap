@@ -15,15 +15,8 @@ setuptools.setup(
     ],
     install_requires=[
 'pandas',
-'tempfile',
-'datetime',
-'pickle',
 'requests',
-'multiprocessing',
-'numpy',
-'pathlib',
-'time',
-'signal'
+'numpy'
 ],
     python_requires='>=3.6'
 )
