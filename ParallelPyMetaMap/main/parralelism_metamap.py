@@ -137,14 +137,14 @@ def ppmm(numbers_of_cores,
             
             concat_df['semantic_type'] = concat_df['semantic_type'].str.strip('[]').str.split(',')
 
-            df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
-            df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
+            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
 
             full_semantic_type_name_list = []
             for i in range(len(concat_df)):
                 full_semantic_type_name_list_current = []
                 for j in range(len(concat_df.iloc[i].semantic_type)): 
-                    full_semantic_type_name_list_current.append(df_semantictypes[df_semantictypes.abbreviation == concat_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                    full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == concat_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
                 full_semantic_type_name_list.append(full_semantic_type_name_list_current)
             concat_df["full_semantic_type_name"] = full_semantic_type_name_list
 
@@ -152,7 +152,7 @@ def ppmm(numbers_of_cores,
             for i in range(len(concat_df)):
                 semantic_group_name_list_current = []
                 for j in range(len(concat_df.iloc[i].semantic_type)): 
-                    semantic_group_name_list_current.append(df_semgroups[df_semgroups.full_semantic_type_name == concat_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                    semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == concat_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
                 semantic_group_name_list.append(semantic_group_name_list_current)
             concat_df["semantic_group_name"] = semantic_group_name_list    
 
@@ -173,14 +173,14 @@ def ppmm(numbers_of_cores,
             
             concat_df['semantic_type'] = concat_df['semantic_type'].str.strip('[]').str.split(',')
 
-            df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
-            df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
+            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
 
             full_semantic_type_name_list = []
             for i in range(len(concat_df)):
                 full_semantic_type_name_list_current = []
                 for j in range(len(concat_df.iloc[i].semantic_type)): 
-                    full_semantic_type_name_list_current.append(df_semantictypes[df_semantictypes.abbreviation == concat_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                    full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == concat_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
                 full_semantic_type_name_list.append(full_semantic_type_name_list_current)
             concat_df["full_semantic_type_name"] = full_semantic_type_name_list
 
@@ -188,7 +188,7 @@ def ppmm(numbers_of_cores,
             for i in range(len(concat_df)):
                 semantic_group_name_list_current = []
                 for j in range(len(concat_df.iloc[i].semantic_type)): 
-                    semantic_group_name_list_current.append(df_semgroups[df_semgroups.full_semantic_type_name == concat_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                    semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == concat_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
                 semantic_group_name_list.append(semantic_group_name_list_current)
             concat_df["semantic_group_name"] = semantic_group_name_list    
 

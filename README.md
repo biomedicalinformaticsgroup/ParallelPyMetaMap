@@ -16,7 +16,7 @@ ParallelPyMetaMap has a number of dependencies on other Python packages, it is r
 
 `git clone https://github.com/biomedicalinformaticsgroup/ParallelPyMetaMap.git`
 
-`pip install ParallelPyMetaMap`
+`pip install ./ParallelPyMetaMap`
 
 You can now remove the file if you want using:
 
