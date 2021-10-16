@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 import pickle
 from datetime import datetime
+import os
 
 from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
@@ -18,6 +19,7 @@ def ppmm(numbers_of_cores,
         unique_id = 'pmid',
         extension = 'txt',
         extension_format = 'terminal',
+        restart = False,
         path_to_file = None,
         file = None,
         composite_phrase=4,
@@ -114,7 +116,87 @@ def ppmm(numbers_of_cores,
         update = True
     else:
         update = False
+    
+    if restart == True and len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/', name))]) == 0:
+        print('There is/are no temporary_df(s) in the directory. The code never started to annotate. Please change the "restart" parameter to False. You might want to check if you get another error.')
+        return None
+        exit()
+    
+    if restart == False:
+        pass
+    else:
+        if update == True:  
+            df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+            concat_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_1.p', 'rb'))
+            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/', name))])
+            
+            if count_temp_files > 1:
+                for i in range(1,count_temp_files):
+                    df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
+                    concat_df = pd.concat([concat_df, df_dynamic])
+            
+            concat_df['semantic_type'] = concat_df['semantic_type'].str.strip('[]').str.split(',')
 
+            df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
+            df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+
+            full_semantic_type_name_list = []
+            for i in range(len(concat_df)):
+                full_semantic_type_name_list_current = []
+                for j in range(len(concat_df.iloc[i].semantic_type)): 
+                    full_semantic_type_name_list_current.append(df_semantictypes[df_semantictypes.abbreviation == concat_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+            concat_df["full_semantic_type_name"] = full_semantic_type_name_list
+
+            semantic_group_name_list = []
+            for i in range(len(concat_df)):
+                semantic_group_name_list_current = []
+                for j in range(len(concat_df.iloc[i].semantic_type)): 
+                    semantic_group_name_list_current.append(df_semgroups[df_semgroups.full_semantic_type_name == concat_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                semantic_group_name_list.append(semantic_group_name_list_current)
+            concat_df["semantic_group_name"] = semantic_group_name_list    
+
+            concat_df = concat_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
+            final_df = pd.concat([df_processed, concat_df])
+            final_df = final_df.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
+            pickle.dump(final_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
+        
+        else:
+            concat_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_1.p', 'rb'))
+            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/', name))])
+            
+            if count_temp_files > 1:
+                for i in range(1,count_temp_files):
+                    df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
+                    concat_df = pd.concat([concat_df, df_dynamic])
+            
+            concat_df['semantic_type'] = concat_df['semantic_type'].str.strip('[]').str.split(',')
+
+            df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
+            df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+
+            full_semantic_type_name_list = []
+            for i in range(len(concat_df)):
+                full_semantic_type_name_list_current = []
+                for j in range(len(concat_df.iloc[i].semantic_type)): 
+                    full_semantic_type_name_list_current.append(df_semantictypes[df_semantictypes.abbreviation == concat_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+            concat_df["full_semantic_type_name"] = full_semantic_type_name_list
+
+            semantic_group_name_list = []
+            for i in range(len(concat_df)):
+                semantic_group_name_list_current = []
+                for j in range(len(concat_df.iloc[i].semantic_type)): 
+                    semantic_group_name_list_current.append(df_semgroups[df_semgroups.full_semantic_type_name == concat_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                semantic_group_name_list.append(semantic_group_name_list_current)
+            concat_df["semantic_group_name"] = semantic_group_name_list    
+
+            concat_df = concat_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
+            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
+
+            update = True
 
     if update == True:
 
@@ -147,12 +229,12 @@ def ppmm(numbers_of_cores,
         if len(df) < par_core:
             par_core = len(df)
     else:
-        print(str('Now creating ') + str(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt"))
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt"))
         f = open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt", "a")
         f.close()
-        print(str('Now creating ') + str(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p"))
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p"))
         df_semantictypes(column_name)
-        print(str('Now creating ') + str(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p"))
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p"))
         df_semgroups(column_name)
 
 

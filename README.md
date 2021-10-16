@@ -7,7 +7,7 @@ In order to run the code, you will need a few things:
 
 1) Metamap.
 
-2) To git clone the project.
+2) To git clone and install the repository.
 
 3) A Cadmus DataFrame output is prefered or a dataframe where the texts you want to process are contained within a column.
 
