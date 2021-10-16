@@ -1,11 +1,9 @@
 import time
 from datetime import datetime
-import pandas as pd
-import subprocess
 import os
 import signal
 
-from ParallelPyMetaMap.src.timeout.job_summary import job_summary
+from ParallelPyMetaMap.timeout.job_summary import job_summary
 
 def timeout_metamap_process(timeout = 10800, username = None):
     

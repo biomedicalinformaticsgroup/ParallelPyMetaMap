@@ -10,16 +10,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ParallelPyMetaMap.src.altered_pymetamap.MetaMap import MetaMap
-from ParallelPyMetaMap.src.altered_pymetamap.Concept import ConceptMMI
-from ParallelPyMetaMap.src.altered_pymetamap.Concept import ConceptAA
-from ParallelPyMetaMap.src.altered_pymetamap.Concept import ConceptUA
-from ParallelPyMetaMap.src.altered_pymetamap.Concept import Corpus
-from ParallelPyMetaMap.src.altered_pymetamap.SubprocessBackend import SubprocessBackend
+from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
+from ParallelPyMetaMap.altered_pymetamap.Concept import ConceptMMI
+from ParallelPyMetaMap.altered_pymetamap.Concept import ConceptAA
+from ParallelPyMetaMap.altered_pymetamap.Concept import ConceptUA
+from ParallelPyMetaMap.altered_pymetamap.Concept import Corpus
+from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
 
 
 __all__ = (MetaMap, Concept, Corpus)
 
-__authors__ = 'Based on the code written by Anthony Rios'
+__authors__ = 'Based on the code written by Anthony Rios for the specified version bellow.'
 __version__ = '0.1'
 __email__ = 'anthonymrios@gmail.com'

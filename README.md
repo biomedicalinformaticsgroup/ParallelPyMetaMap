@@ -5,18 +5,22 @@ This code is to run PyMetaMap in parallel
 
 In order to run the code, you will need a few things:
 
-1) Metamap
+1) Metamap.
 
-2) To git clone the project to the directory you want to save your result.
+2) To git clone the project.
 
-3) A Cadmus DataFrame output or a dataframe where the text you want to process has the column's name 'content_text'
+3) A Cadmus DataFrame output is prefered or a dataframe where the texts you want to process are contained within a column.
 
 ## Installation
 ParallelPyMetaMap has a number of dependencies on other Python packages, it is recommended to install in an isolated environment
 
 `git clone https://github.com/biomedicalinformaticsgroup/ParallelPyMetaMap.git`
 
-`pip install ./ParallelPyMetaMap`
+`pip install ParallelPyMetaMap`
+
+You can now remove the file if you want using:
+
+`rm -rf ParallelPyMetaMap`
 
 ## Get started
 ParallelPyMetaMap is utilizing the number of cores available in your machine to create parallel instances of MetaMap server to run multiple rows at the same time. To do so, the library is using the multiprocessing library. 

@@ -3,16 +3,14 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import pickle
-import random
 from datetime import datetime
-from pathlib import Path
 
-from ParallelPyMetaMap.src.altered_pymetamap.MetaMap import MetaMap
-from ParallelPyMetaMap.src.altered_pymetamap.SubprocessBackend import SubprocessBackend
-from ParallelPyMetaMap.src.main.output_files import output_files
-from ParallelPyMetaMap.src.main.annotation_func import annotation_func
-from ParallelPyMetaMap.src.main.df_semantictypes import df_semantictypes
-from ParallelPyMetaMap.src.main.df_semgroups import df_semgroups
+from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
+from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
+from ParallelPyMetaMap.main.output_files import output_files
+from ParallelPyMetaMap.main.annotation_func import annotation_func
+from ParallelPyMetaMap.main.df_semantictypes import df_semantictypes
+from ParallelPyMetaMap.main.df_semgroups import df_semgroups
                       
 def ppmm(numbers_of_cores,
         path_to_metamap,

@@ -1,10 +1,10 @@
 from datetime import datetime
 import pickle
 import pandas as pd 
-from ParallelPyMetaMap.src.altered_pymetamap.MetaMap import MetaMap
-from ParallelPyMetaMap.src.altered_pymetamap.SubprocessBackend import SubprocessBackend
-from ParallelPyMetaMap.src.main.removeNonAscii import removeNonAscii
-from ParallelPyMetaMap.src.main.concept2dict import concept2dict
+from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
+from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
+from ParallelPyMetaMap.main.removeNonAscii import removeNonAscii
+from ParallelPyMetaMap.main.concept2dict import concept2dict
 
 class bold:
    BEGIN = '\033[1m'

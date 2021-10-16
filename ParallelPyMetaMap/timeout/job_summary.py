@@ -1,9 +1,5 @@
-import time
-from datetime import datetime
 import pandas as pd
 import subprocess
-import os
-import signal
 
 def job_summary(username = None):
     print('Checking for jobs')

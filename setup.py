@@ -1,23 +1,32 @@
-
 import setuptools
    
 setuptools.setup(
     name="ParallelPyMetaMap",
     version="0.1.0",
-    author="Jamie Campbell, Ian Simpson, Antoine Lain",
-    author_email="Jamie.campbell@igmm.ed.ac.uk, Ian.Simpson@ed.ac.uk, Antoine.Lain@ed.ac.uk",
-    description="This projects is to run PyMetaMap in parallel to get biomedical annotations from published literature.",
+    author="Antoine Lain, Jamie Campbell, Ian Simpson",
+    author_email="Antoine.Lain@ed.ac.uk, Ian.Simpson@ed.ac.uk",
+    description="This code is to run PyMetaMap in parallel.",
     packages=setuptools.find_packages(),
     classifiers=[
+        "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=[
+    install_requires=['collections',
+'abc',
+'os',
+'subprocess',
+'tempfile',
+'datetime',
+'pickle',
 'pandas',
+'requests',
+'multiprocessing',
 'numpy',
 'pathlib',
-'datetime',
-'pathlib'],
+'time',
+'signal'
+],
     python_requires='>=3.6'
 )
