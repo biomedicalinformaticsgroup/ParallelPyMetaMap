@@ -14,11 +14,10 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-'subprocess',
+'pandas',
 'tempfile',
 'datetime',
 'pickle',
-'pandas',
 'requests',
 'multiprocessing',
 'numpy',
