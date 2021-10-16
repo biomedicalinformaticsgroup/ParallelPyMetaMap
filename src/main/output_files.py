@@ -5,7 +5,7 @@ def output_files(column_name, extension):
     for path in [f'output_ParallelPyMetaMap_{column_name}',
                 f'output_ParallelPyMetaMap_{column_name}/annotated_df',
                 f'output_ParallelPyMetaMap_{column_name}/temporary_df',
-                f'output_ParallelPyMetaMap_{column_name}/to_avoid',
+                f'output_ParallelPyMetaMap_{column_name}/extra_resources',
                 f'output_ParallelPyMetaMap_{column_name}/{extension}_files'
                 ]:
         try:

@@ -11,3 +11,5 @@ from ParallelPyMetaMap.src.main import ppmm
 from ParallelPyMetaMap.src.main import output_files
 from ParallelPyMetaMap.src.timeout import job_summary
 from ParallelPyMetaMap.src.timeout import timeout_metamap_process
+from ParallelPyMetaMap.src.main import df_semantictypes
+from ParallelPyMetaMap.src.main import df_semgroups

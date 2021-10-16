@@ -11,6 +11,8 @@ from ParallelPyMetaMap.src.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.src.altered_pymetamap.SubprocessBackend import SubprocessBackend
 from ParallelPyMetaMap.src.main.output_files import output_files
 from ParallelPyMetaMap.src.main.annotation_func import annotation_func
+from ParallelPyMetaMap.src.main.df_semantictypes import df_semantictypes
+from ParallelPyMetaMap.src.main.df_semgroups import df_semgroups
                       
 def ppmm(numbers_of_cores,
         path_to_metamap,
@@ -129,7 +131,7 @@ def ppmm(numbers_of_cores,
 
         list_to_do = list(set(list_original_index) - set(list_check_index))
 
-        file_avoid = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", 'r')
+        file_avoid = open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt", 'r')
         Lines = file_avoid.readlines()
         list_avoid = []
         for line in Lines:
@@ -147,8 +149,14 @@ def ppmm(numbers_of_cores,
         if len(df) < par_core:
             par_core = len(df)
     else:
-        f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
+        print(str('Now creating ') + str(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt"))
+        f = open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt", "a")
         f.close()
+        print(str('Now creating ') + str(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p"))
+        df_semantictypes(column_name)
+        print(str('Now creating ') + str(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p"))
+        df_semgroups(column_name)
+
 
     mm = MetaMap.get_instance(path_to_metamap)
 

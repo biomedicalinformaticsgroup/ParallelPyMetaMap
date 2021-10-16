@@ -139,7 +139,7 @@ def annotation_func(df,
                         f.close()
         
         if df.iloc[j][unique_id] not in idx:
-            f = open(f"./output_ParallelPyMetaMap_{column_name}/to_avoid/{unique_id}_to_avoid.txt", "a")
+            f = open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt", "a")
             f.write(str(df.iloc[j][unique_id]) + str('\n'))
             f.close()
 
@@ -161,7 +161,6 @@ def annotation_func(df,
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
     print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str(round((float(j+1)/float(len(df)))*100, 2)) + str('%') + bold.END)
-    print(str(current_time) + str(' Saving file'))
     annotated_df = pd.DataFrame(
         {'semantic_type': list_of_semtypes,
         'umls_preferred_name': list_of_preferred_names,
@@ -171,4 +170,35 @@ def annotation_func(df,
         'annotation': list_of_annotations,
         f'{unique_id}' : idx
         })
+
+    now = datetime.now()
+    current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
+    print(str(current_time) + str(' Adding full_semantic_type_name and semantic_group_name to the result for ')+ str('proccess ') + bold.BEGIN + str(batch) + bold.END)
+    
+    annotated_df['semantic_type'] = annotated_df['semantic_type'].str.strip('[]').str.split(',')
+
+    df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
+    df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+
+    full_semantic_type_name_list = []
+    for i in range(len(annotated_df)):
+        full_semantic_type_name_list_current = []
+        for j in range(len(annotated_df.iloc[i].semantic_type)): 
+            full_semantic_type_name_list_current.append(df_semantictypes[df_semantictypes.abbreviation == annotated_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+        full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+    annotated_df["full_semantic_type_name"] = full_semantic_type_name_list
+
+    semantic_group_name_list = []
+    for i in range(len(annotated_df)):
+        semantic_group_name_list_current = []
+        for j in range(len(annotated_df.iloc[i].semantic_type)): 
+            semantic_group_name_list_current.append(df_semgroups[df_semgroups.full_semantic_type_name == annotated_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+        semantic_group_name_list.append(semantic_group_name_list_current)
+    annotated_df["semantic_group_name"] = semantic_group_name_list    
+
+    annotated_df = annotated_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+
+    now = datetime.now()
+    current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
+    print(str(current_time) + str(' Saving file for proccess ') + bold.BEGIN + str(batch) + bold.END)
     pickle.dump(annotated_df, open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{batch}.p', 'wb'))
