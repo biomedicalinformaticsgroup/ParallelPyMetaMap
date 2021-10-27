@@ -46,7 +46,7 @@ Ready to contribute? Here's how to set up `ParallelPyMetaMap` for local developm
 2. Install `ParallelPyMetaMap` using `pip`:
 
     ```console
-    $ pip install ParallelPyMetaMap
+    $ pip install ./ParallelPyMetaMap
     ```
 
 ## Pull Request Guidelines
