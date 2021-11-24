@@ -2,7 +2,7 @@ import requests
 import pickle
 import pandas as pd
 
-def df_semgroups(column_name):
+def df_semgroups(column_name, out_form):
     url = "https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/Docs/SemGroups_2018.txt"
     file = requests.get(url)
 
@@ -23,4 +23,4 @@ def df_semgroups(column_name):
 
     dict = {'semantic_group_abbrev': semantic_group_abbrev, 'semantic_group_name' : semantic_group_name, 'type_unique_identifier': type_unique_identifier, 'full_semantic_type_name': full_semantic_type_name} 
     df_semgroups = pd.DataFrame(dict)
-    pickle.dump(df_semgroups, open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p", "wb"))
+    pickle.dump(df_semgroups, open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p", "wb"))

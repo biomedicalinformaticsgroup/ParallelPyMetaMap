@@ -2,7 +2,7 @@ import requests
 import pickle
 import pandas as pd
 
-def df_semantictypes(column_name):
+def df_semantictypes(column_name, out_form):
     url = "https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/Docs/SemanticTypes_2018AB.txt"
     file = requests.get(url)
 
@@ -21,4 +21,4 @@ def df_semantictypes(column_name):
 
     dict = {'abbreviation': abbreviation, 'type_unique_identifier': type_unique_identifier, 'full_semantic_type_name': full_semantic_type_name} 
     df_semantictypes = pd.DataFrame(dict)
-    pickle.dump(df_semantictypes, open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p", "wb"))
+    pickle.dump(df_semantictypes, open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p", "wb"))

@@ -23,6 +23,8 @@ def ppmm(numbers_of_cores,
         path_to_file = None,
         file = None,
         composite_phrase=4,
+        fielded_mmi_output=False,
+        machine_output=False,
         filename=None,
         file_format='sldi',
         allow_acronym_variants=False,
@@ -42,6 +44,7 @@ def ppmm(numbers_of_cores,
         compute_all_mappings=False,
         prune=False,
         mm_data_version=False,
+        mm_data_year=False,
         verbose=False,
         exclude_sources=[],
         restrict_to_sources=[],
@@ -49,7 +52,17 @@ def ppmm(numbers_of_cores,
         exclude_sts=[],
         no_nums=[]):
 
-    output_files(column_name, extension)
+    if (fielded_mmi_output == False and machine_output == False) or (fielded_mmi_output == True and machine_output == True):
+        print("You need to set either fielded_mmi_output or machine_output to 'True'")
+        return None
+        exit()
+    
+    if fielded_mmi_output == True:
+        out_form = 'mmi'
+    else:
+        out_form = 'mo'
+
+    output_files(column_name, out_form, extension)
 
     if numbers_of_cores >= mp.cpu_count():
         print('The number of cores you want to use is equal or greater than the numbers of cores in your machine. We stop the script now')
@@ -109,7 +122,7 @@ def ppmm(numbers_of_cores,
 
     update = False
 
-    retrieved_path = [path for path in Path(f'output_ParallelPyMetaMap_{column_name}/annotated_df').iterdir() if path.stem == f'annotated_{column_name}_{unique_id}_df2']
+    retrieved_path = [path for path in Path(f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df').iterdir() if path.stem == f'annotated_{column_name}_{unique_id}_df2']
     if len(retrieved_path) == 0:
         update = False
     elif retrieved_path[0]:
@@ -117,7 +130,7 @@ def ppmm(numbers_of_cores,
     else:
         update = False
     
-    if restart == True and len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/', name))]) == 0:
+    if restart == True and len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))]) == 0:
         print('There is/are no temporary_df(s) in the directory. The code never started to annotate. Please change the "restart" parameter to "False". You might want to check if you get another error.')
         return None
         exit()
@@ -128,12 +141,12 @@ def ppmm(numbers_of_cores,
         needed_restart = False
         concat_df = None
         if update == True:  
-            df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+            df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
             df_processed = df_processed[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
-            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/', name))])
+            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))])
             if count_temp_files > 1:
                     for i in range(count_temp_files):
-                        df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
+                        df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
                         if df_dynamic.shape[1] == 9:
                             df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
                             df_processed = pd.concat([df_processed, df_dynamic])
@@ -146,8 +159,8 @@ def ppmm(numbers_of_cores,
                             
                             df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
 
-                            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
-                            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+                            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+                            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
 
                             full_semantic_type_name_list = []
                             for i in range(len(df_dynamic)):
@@ -181,13 +194,13 @@ def ppmm(numbers_of_cores,
                 return None
                 exit()
             else:
-                pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
-                pickle.dump(df_processed, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
+                pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
+                pickle.dump(df_processed, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
         else:
-            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/', name))])
+            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))])
             if count_temp_files > 1:
                     for i in range(count_temp_files):
-                        df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
+                        df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
                         if df_dynamic.shape[1] == 9:
                             df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
                             if type(concat_df) == None:
@@ -197,8 +210,8 @@ def ppmm(numbers_of_cores,
                         else:
                             df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
 
-                            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p', 'rb'))
-                            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p', 'rb'))
+                            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+                            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
 
                             full_semantic_type_name_list = []
                             for i in range(len(df_dynamic)):
@@ -223,13 +236,13 @@ def ppmm(numbers_of_cores,
 
             concat_df = concat_df.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
             concat_df = concat_df.reset_index(drop=True)        
-            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
-            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
+            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
+            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
             update = True
 
     if update == True:
 
-        df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+        df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
 
         list_original_index = []
         for i in range(len(df)):
@@ -240,7 +253,7 @@ def ppmm(numbers_of_cores,
 
         list_to_do = list(set(list_original_index) - set(list_check_index))
 
-        file_avoid = open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt", 'r')
+        file_avoid = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt", 'r')
         Lines = file_avoid.readlines()
         list_avoid = []
         for line in Lines:
@@ -258,13 +271,13 @@ def ppmm(numbers_of_cores,
         if len(df) < par_core:
             par_core = len(df)
     else:
-        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt"))
-        f = open(f"./output_ParallelPyMetaMap_{column_name}/extra_resources/{unique_id}_to_avoid.txt", "a")
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt"))
+        f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt", "a")
         f.close()
-        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}/extra_resources/df_semantictypes.p"))
-        df_semantictypes(column_name)
-        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}/extra_resources/df_semgroups.p"))
-        df_semgroups(column_name)
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p"))
+        df_semantictypes(column_name, out_form)
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p"))
+        df_semgroups(column_name, out_form)
 
 
     mm = MetaMap.get_instance(path_to_metamap)
@@ -273,41 +286,45 @@ def ppmm(numbers_of_cores,
         data = []
         for i in range(par_core):
             if i == 0:
-                current_data = (df[:round(len(df)/par_core)], i+1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                current_data = (df[:round(len(df)/par_core)], i+1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                        machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
-                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
+                        prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             elif i > 0 and i+1 != par_core:
-                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                        machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
-                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
+                        prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             else:
-                current_data = (df[round(len(df)/par_core)*i:], i+1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+                current_data = (df[round(len(df)/par_core)*i:], i+1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                        machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
-                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
+                        prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
     else:
-        data = [(df, 1, mm, column_name, unique_id, extension, extension_format, composite_phrase, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
+        data = [(df, 1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                        machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
-                        prune, mm_data_version, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)]
+                        prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)]
 
     with mp.Pool(numbers_of_cores) as pool:
         pool.starmap(annotation_func, data)
     
-    concat_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_1.p', 'rb'))
+    concat_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_1.p', 'rb'))
     if par_core > 1:
         for i in range(1,par_core):
-            df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
+            df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
             concat_df = pd.concat([concat_df, df_dynamic])
 
 
     concat_df = concat_df.reset_index(drop=True)
-    pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
+    pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
     
     if update == True:
         final_df = pd.concat([df_processed, concat_df])
@@ -315,7 +332,7 @@ def ppmm(numbers_of_cores,
         final_df = concat_df
 
     final_df = final_df.reset_index(drop=True)
-    pickle.dump(final_df, open(f'./output_ParallelPyMetaMap_{column_name}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
+    pickle.dump(final_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
 
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y, %H:%M:%S")

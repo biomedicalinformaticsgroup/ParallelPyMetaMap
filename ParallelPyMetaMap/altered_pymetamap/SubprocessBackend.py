@@ -60,6 +60,8 @@ class SubprocessBackend(MetaMap):
                          sentences=None,
                          ids=None,
                          composite_phrase=4,
+                         fielded_mmi_output=False,
+                         machine_output=False,
                          filename=None,
                          file_format='sldi',
                          allow_acronym_variants=False,
@@ -79,6 +81,7 @@ class SubprocessBackend(MetaMap):
                          compute_all_mappings=False,
                          prune=False,
                          mm_data_version=False,
+                         mm_data_year=False,
                          verbose=False,
                          exclude_sources=[],
                          restrict_to_sources=[],
@@ -95,6 +98,10 @@ class SubprocessBackend(MetaMap):
                              "OR a filename.")
         if file_format not in ['sldi','sldiID']:
             raise ValueError("file_format must be either sldi or sldiID")
+        if (fielded_mmi_output is False and machine_output is False) or \
+                (fielded_mmi_output is True and machine_output is True):
+            raise ValueError("You must choose between fielded_mmi_output "
+                             "OR machine_output.")
 
 
 
@@ -117,8 +124,10 @@ class SubprocessBackend(MetaMap):
                     for sentence in sentences:
                         input_file.write('{0!r}\n'.format(sentence).encode('utf8'))
                 input_file.flush()
-
-            command = [self.metamap_filename, '-N']
+            if fielded_mmi_output:
+                command = [self.metamap_filename, '-N']
+            if machine_output:
+                command = [self.metamap_filename, '-q']
             command.append('-Q')
             command.append(str(composite_phrase))
             if mm_data_version is not False:
@@ -126,6 +135,9 @@ class SubprocessBackend(MetaMap):
                     raise ValueError("mm_data_version must be Base, USAbase, or NLM.")
                 command.append('-V')
                 command.append(str(mm_data_version))
+            if mm_data_year is not False:
+                command.append('-Z')
+                command.append(str(mm_data_year))
             if word_sense_disambiguation:
                 command.append('-y')
             if strict_model:
@@ -201,6 +213,8 @@ class SubprocessBackend(MetaMap):
             else:
                 input_file.close()
             os.remove(output_file.name)
-
-        concepts = Corpus.load(output.splitlines())
+        if fielded_mmi_output:
+            concepts = Corpus.load(output.splitlines())
+        if machine_output:
+            concepts = output.splitlines()
         return (concepts, error)

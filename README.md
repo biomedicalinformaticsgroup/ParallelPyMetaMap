@@ -34,7 +34,7 @@ Like Cadmus, dynamic generation is important. You can update your annotated data
 ```python
 from ParallelPyMetaMap import ppmm
 
-parralelism_metamap(NUMBER_OF_CORES_TO_USE, 
+ppmm(NUMBER_OF_CORES_TO_USE, 
                     PATH_TO_METAMAP)
 ```
 
