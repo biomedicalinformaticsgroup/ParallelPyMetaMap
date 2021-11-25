@@ -1,6 +1,7 @@
 from datetime import datetime
 import pickle
 import pandas as pd 
+import numpy as np
 import re
 from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
@@ -123,7 +124,7 @@ def annotation_func(df,
                         text = data[str(0)][i].get('trigger')
                         neg = (int(str(text).count('noun-1')) + int(str(text).count('adj-1')) + int(str(text).count('verb-1')) + int(str(text).count('adv-1')) + int(str(text).count('integer-1')) + int(str(text).count('numeral-1')) + int(str(text).count('prep-1')) + int(str(text).count('number-1')) + int(str(text).count('percentage-1')) + int(str(text).count('conj-1')) + int(str(text).count('ordinal-1')) + int(str(text).count('UNKNOWN-1')) + int(str(text).count('aux-1')) + int(str(text).count('fraction-1')))
                         negation.append(neg)
-                        occurrence.append(neg + (int(str(text).count('noun-0')) + int(str(text).count('adj-0')) + int(str(text).count('verb-0')) + int(str(text).count('adv-0')) + int(str(text).count('integer-0')) + int(str(text).count('numeral-0')) + int(str(text).count('prep-0')) + int(str(text).count('number-0')) + int(str(text).count('percentage-0')) + int(str(text).count('conj-0')) + int(str(text).count('ordinal-0')) + int(str(text).count('UNKNOWN-0')) + int(str(text).count('aux-0')) + int(str(text).count('fraction-0'))))
+                        occurrence.append(str(np.unique(str(data[str(0)][i].get('pos_info').replace(';', ',')).split(','))).count('/'))
                         idx.append(df.iloc[j][unique_id])
                         if extension_format == 'dict':
                             f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
@@ -160,48 +161,50 @@ def annotation_func(df,
                     if 'ev(-' in concepts[i]:
                         temp_list.append(concepts[i])
                 temp_anno = []
-                for i in range(len(temp_list)):   
-                    matches = re.findall('ev\(-.+?,0\)',temp_list[i])
-                    for g in range(len(matches)):
-                        temp_anno.append(matches[g])
-                    matches = re.findall('ev\(-.+?,1\)',temp_list[i])
-                    for g in range(len(matches)):
-                        temp_anno.append(matches[g])
+                for i in range(len(temp_list)):
+                    temp_list_current = temp_list[i].split('ev(-')
+                    temp_list_current_correct = []
+                    for k in range(1,len(temp_list_current)):
+                        temp_list_current_correct.append(str('ev(-') + str(temp_list_current[k]))
+                    for k in range(len(temp_list_current_correct)):
+                        matches = re.findall('ev\(-.+?,0\)',temp_list_current_correct[k])
+                        for g in range(len(matches)):
+                            temp_anno.append(matches[g])
+                        matches = re.findall('ev\(-.+?,1\)',temp_list_current_correct[k])
+                        for g in range(len(matches)):
+                            temp_anno.append(matches[g])
                 for i in range(len(temp_anno)):
-                    current_score = re.findall('ev\(-.+?,',temp_anno[i])
-                    if temp_anno[i][-2] == '1':
-                        current_score = str('-') + str(current_score[0][4:-1])
-                    if temp_anno[i][-2] == '0':
-                        current_score = current_score[0][4:-1]
-                    current_apos = re.findall('\'.+?\',',temp_anno[i])
-                    try:
-                        curent_cui = current_apos[0][1:-2]
-                    except:
-                        curent_cui = temp_anno[i].split(',')[1]
-                    try:
-                        current_prefered = current_apos[2][1:-2]
-                    except:
-                        current_prefered = temp_anno[i].split(',')[3]
-                    current_square = re.findall('\[.+?\],',temp_anno[i])
-                    current_trigger = current_square[0][1:-2].replace(',', ' ')
-                    current_semantic = current_square[1][:-1]
-                    current_sab = current_square[-2][:-1]
-                    current_pos = current_square[-1][:-1]
-                    current_occurrence = 1
-                    if temp_anno[i][-2] == '1':
-                        current_negation = 1
-                    if temp_anno[i][-2] == '0':
-                        current_negation = 0
-                    score.append(int(current_score))
-                    cui.append(str(curent_cui))
-                    prefered_name.append(str(current_prefered))
-                    trigger.append(str(current_trigger))
-                    semantic_list.append(current_semantic.strip('[]').replace("\'", '').split(','))
-                    sab.append(current_sab.strip('[]').replace("\'", '').split(','))
-                    pos_info.append(current_pos)
-                    occurrence.append(int(current_occurrence))
-                    negation.append(int(current_negation))
-                    idx.append(str(df.iloc[j][unique_id]))
+                    current_square_count = re.findall('\[.+?\],',temp_anno[i])
+                    current_pos_count = current_square_count[-1][:-1]
+                    count_value = str(current_pos_count).count('/')
+                    for u in range(count_value):
+                        current_score = re.findall('ev\(-.+?,',temp_anno[i])
+                        if temp_anno[i][-2] == '1':
+                            current_score = str('-') + str(current_score[0][4:-1])
+                        if temp_anno[i][-2] == '0':
+                            current_score = current_score[0][4:-1]
+                        curent_cui = str(temp_anno[i].split(',')[1]).strip("'")
+                        current_prefered = str(temp_anno[i].split(',')[3]).strip("'")
+                        current_square = re.findall('\[.+?\],',temp_anno[i])
+                        current_trigger = current_square[0][1:-2].replace(',', ' ')
+                        current_semantic = current_square[1][:-1]
+                        current_sab = current_square[-2][:-1]
+                        current_pos = current_square[-1].strip('[]').split(',')[u]
+                        current_occurrence = 1
+                        if temp_anno[i][-2] == '1':
+                            current_negation = 1
+                        if temp_anno[i][-2] == '0':
+                            current_negation = 0
+                        score.append(int(current_score))
+                        cui.append(str(curent_cui))
+                        prefered_name.append(str(current_prefered))
+                        trigger.append(str(current_trigger))
+                        semantic_list.append(current_semantic.strip('[]').replace("\'", '').split(','))
+                        sab.append(current_sab.strip('[]').replace("\'", '').split(','))
+                        pos_info.append(current_pos)
+                        occurrence.append(int(current_occurrence))
+                        negation.append(int(current_negation))
+                        idx.append(str(df.iloc[j][unique_id]))
                 if extension_format == 'dict':
                     for i in range(len(temp_anno)):
                         f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
@@ -238,9 +241,18 @@ def annotation_func(df,
                 now = datetime.now()
                 current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
                 print(str(current_time) + str(' Saving file'))
-                values = [score, cui, prefered_name, trigger, semantic_list, sab, pos_info, occurrence, negation, idx]
-                annotated_df = pd.DataFrame(values).transpose()
-                annotated_df.columns = ['score', 'cui', 'prefered_name', 'trigger', 'semantic_type', 'sab', 'pos_info', 'occurrence', 'negation', f'{unique_id}']
+                annotated_df = pd.DataFrame(
+                    {'score': score, 
+                    'cui': cui, 
+                    'prefered_name': prefered_name, 
+                    'trigger': trigger, 
+                    'semantic_type': semantic_list, 
+                    'sab': sab, 
+                    'pos_info': pos_info, 
+                    'occurrence': occurrence, 
+                    'negation': negation, 
+                    f'{unique_id}': idx
+                    })
                 pickle.dump(annotated_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{batch}.p', 'wb'))
                 
     now = datetime.now()
@@ -257,9 +269,18 @@ def annotation_func(df,
             f'{unique_id}' : idx
             })
     if machine_output == True:
-        values = [score, cui, prefered_name, trigger, semantic_list, sab, pos_info, occurrence, negation, idx]
-        annotated_df = pd.DataFrame(values).transpose()
-        annotated_df.columns = ['score', 'cui', 'prefered_name', 'trigger', 'semantic_type', 'sab', 'pos_info', 'occurrence', 'negation', f'{unique_id}']
+        annotated_df = pd.DataFrame(
+            {'score': score, 
+            'cui': cui, 
+            'prefered_name': prefered_name, 
+            'trigger': trigger, 
+            'semantic_type': semantic_list, 
+            'sab': sab, 
+            'pos_info': pos_info, 
+            'occurrence': occurrence, 
+            'negation': negation, 
+            f'{unique_id}': idx
+            })
         annotated_df = annotated_df.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
         annotated_df = annotated_df.reset_index(drop=True)
         annotated_df['pos_info'] = annotated_df['pos_info'].str.strip('[]').str.split(',')

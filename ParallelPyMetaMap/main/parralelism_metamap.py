@@ -140,49 +140,99 @@ def ppmm(numbers_of_cores,
     else:
         needed_restart = False
         concat_df = None
-        if update == True:  
-            df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
-            df_processed = df_processed[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+        if update == True:
+
+            if fielded_mmi_output == True:  
+                df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+                df_processed = df_processed[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+            if machine_output == True:
+                df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+                df_processed = df_processed[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
+
             count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))])
             if count_temp_files > 1:
                     for i in range(count_temp_files):
                         df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
-                        if df_dynamic.shape[1] == 9:
-                            df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
-                            df_processed = pd.concat([df_processed, df_dynamic])
-                            if type(concat_df) == None:
-                                concat_df = df_dynamic
+                        if fielded_mmi_output == True:
+                            if df_dynamic.shape[1] == 9:
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                                df_processed = pd.concat([df_processed, df_dynamic])
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
                             else:
-                                concat_df = pd.concat([concat_df, df_dynamic])
-                        else:
-                            needed_restart = True
-                            
-                            df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
+                                needed_restart = True
+                                
+                                df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
 
-                            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-                            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
+                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
 
-                            full_semantic_type_name_list = []
-                            for i in range(len(df_dynamic)):
-                                full_semantic_type_name_list_current = []
-                                for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                    full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-                                full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-                            df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
+                                full_semantic_type_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    full_semantic_type_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
 
-                            semantic_group_name_list = []
-                            for i in range(len(df_dynamic)):
-                                semantic_group_name_list_current = []
-                                for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                    semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-                                semantic_group_name_list.append(semantic_group_name_list_current)
-                            df_dynamic["semantic_group_name"] = semantic_group_name_list
-                            df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
-                            df_processed = pd.concat([df_processed, df_dynamic])
-                            if type(concat_df) == None:
-                                concat_df = df_dynamic
+                                semantic_group_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    semantic_group_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                                    semantic_group_name_list.append(semantic_group_name_list_current)
+                                df_dynamic["semantic_group_name"] = semantic_group_name_list
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                                df_processed = pd.concat([df_processed, df_dynamic])
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
+                        if machine_output == True:
+                            if df_dynamic.shape[1] == 12:
+                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
+                                df_processed = pd.concat([df_processed, df_dynamic])
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
                             else:
-                                concat_df = pd.concat([concat_df, df_dynamic])
+                                needed_restart = True
+
+                                df_dynamic = df_dynamic.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
+                                df_dynamic = df_dynamic.reset_index(drop=True)
+                                df_dynamic['pos_info'] = df_dynamic['pos_info'].str.strip('[]').str.split(',')
+                                aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': lambda x: list(x), 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
+                                df_dynamic = df_dynamic.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
+                                df_dynamic = df_dynamic.reset_index()
+                                
+                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
+
+                                full_semantic_type_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    full_semantic_type_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
+
+                                semantic_group_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    semantic_group_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                                    semantic_group_name_list.append(semantic_group_name_list_current)
+                                df_dynamic["semantic_group_name"] = semantic_group_name_list
+                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
+                                df_processed = pd.concat([df_processed, df_dynamic])
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
+
 
             df_processed = df_processed.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
             df_processed = df_processed.reset_index(drop=True)
@@ -201,38 +251,80 @@ def ppmm(numbers_of_cores,
             if count_temp_files > 1:
                     for i in range(count_temp_files):
                         df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
-                        if df_dynamic.shape[1] == 9:
-                            df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
-                            if type(concat_df) == None:
-                                concat_df = df_dynamic
+                        if fielded_mmi_output == True:
+                            if df_dynamic.shape[1] == 9:
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
                             else:
-                                concat_df = pd.concat([concat_df, df_dynamic])
-                        else:
-                            df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
+                                df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
 
-                            df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-                            df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
+                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
 
-                            full_semantic_type_name_list = []
-                            for i in range(len(df_dynamic)):
-                                full_semantic_type_name_list_current = []
-                                for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                    full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-                                full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-                            df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
+                                full_semantic_type_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    full_semantic_type_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
 
-                            semantic_group_name_list = []
-                            for i in range(len(df_dynamic)):
-                                semantic_group_name_list_current = []
-                                for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                    semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-                                semantic_group_name_list.append(semantic_group_name_list_current)
-                            df_dynamic["semantic_group_name"] = semantic_group_name_list
-                            df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
-                            if type(concat_df) == None:
-                                concat_df = df_dynamic
+                                semantic_group_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    semantic_group_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                                    semantic_group_name_list.append(semantic_group_name_list_current)
+                                df_dynamic["semantic_group_name"] = semantic_group_name_list
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
+                        if machine_output == True:
+                            if df_dynamic.shape[1] == 12:
+                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
+                                df_processed = pd.concat([df_processed, df_dynamic])
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
                             else:
-                                concat_df = pd.concat([concat_df, df_dynamic])
+
+                                df_dynamic = df_dynamic.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
+                                df_dynamic = df_dynamic.reset_index(drop=True)
+                                df_dynamic['pos_info'] = df_dynamic['pos_info'].str.strip('[]').str.split(',')
+                                aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': lambda x: list(x), 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
+                                df_dynamic = df_dynamic.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
+                                df_dynamic = df_dynamic.reset_index()
+
+                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
+
+                                full_semantic_type_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    full_semantic_type_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
+                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
+
+                                semantic_group_name_list = []
+                                for i in range(len(df_dynamic)):
+                                    semantic_group_name_list_current = []
+                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
+                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
+                                    semantic_group_name_list.append(semantic_group_name_list_current)
+                                df_dynamic["semantic_group_name"] = semantic_group_name_list
+                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
+                                if type(concat_df) == None:
+                                    concat_df = df_dynamic
+                                else:
+                                    concat_df = pd.concat([concat_df, df_dynamic])
+
 
             concat_df = concat_df.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
             concat_df = concat_df.reset_index(drop=True)        
