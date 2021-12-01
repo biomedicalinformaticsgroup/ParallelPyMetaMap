@@ -74,6 +74,12 @@ def annotation_func(df,
             pass
         else:
             term = removeNonAscii(df[column_name][j])
+            term = term.replace('\n', ' ')
+            term = term.replace('\r', ' ')
+            term = term.replace('\t', ' ')
+            term = term.replace('\'', ' ')
+            term = term.replace('\"', ' ')
+            term = term.replace('\\', ' ')
             term = [term]
             ids = list(range(len(term)))
             concepts, error = mm.extract_concepts(term, 
@@ -110,7 +116,6 @@ def annotation_func(df,
             if fielded_mmi_output == True:
                 data = concept2dict(concepts)
                 text = str
-                neg = 0
 
                 for i in range(len(data[str(0)])):
                     if 'preferred_name' and 'cui' in data[str(0)][i]:
@@ -122,8 +127,6 @@ def annotation_func(df,
                         list_of_cuis.append(data[str(0)][i]['cui'])
                         list_of_annotations.append(data[str(0)][i])
                         text = data[str(0)][i].get('trigger')
-                        neg = (int(str(text).count('noun-1')) + int(str(text).count('adj-1')) + int(str(text).count('verb-1')) + int(str(text).count('adv-1')) + int(str(text).count('integer-1')) + int(str(text).count('numeral-1')) + int(str(text).count('prep-1')) + int(str(text).count('number-1')) + int(str(text).count('percentage-1')) + int(str(text).count('conj-1')) + int(str(text).count('ordinal-1')) + int(str(text).count('UNKNOWN-1')) + int(str(text).count('aux-1')) + int(str(text).count('fraction-1')))
-                        negation.append(neg)
                         occurrence.append(str(np.unique(str(data[str(0)][i].get('pos_info').replace(';', ',')).split(','))).count('/'))
                         idx.append(df.iloc[j][unique_id])
                         if extension_format == 'dict':
@@ -138,24 +141,70 @@ def annotation_func(df,
                     if 'aa' in data[str(0)][i]:
                         if extension_format == 'dict':
                             f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
-                            f.write(str(str(data[str(0)][i]) + ('\n')))
+                            if i != int((len(data[str(0)])-1)): 
+                                f.write(str(str(data[str(0)][i]) + ('\n')))
+                            else:
+                                f.write(str(data[str(0)][i]))
                             f.close()
                         elif extension_format == 'terminal':
                             f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
-                            f.write(str('USER|') + str(data[str(0)][i].get('aa')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
+                            if i != int((len(data[str(0)])-1)):
+                                f.write(str('USER|') + str(data[str(0)][i].get('aa')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
+                            else:
+                                f.write(str('USER|') + str(data[str(0)][i].get('aa')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info'))) 
                             f.close()
 
                     if 'ua' in data[str(0)][i]:
                         if extension_format == 'dict':
                             f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
-                            f.write(str(str(data[str(0)][i]) + ('\n')))
+                            if i != int((len(data[str(0)])-1)):
+                                f.write(str(str(data[str(0)][i]) + ('\n')))
+                            else:
+                                f.write(str(data[str(0)][i]))
                             f.close()
                         elif extension_format == 'terminal':
                             f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
-                            f.write(str('USER|') + str(data[str(0)][i].get('ua')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
+                            if i != int((len(data[str(0)])-1)):
+                                f.write(str('USER|') + str(data[str(0)][i].get('ua')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info')) + str('\n')) 
+                            else:
+                                f.write(str('USER|') + str(data[str(0)][i].get('ua')) + str('|') + str(data[str(0)][i].get('short_form')) + str('|') + str(data[str(0)][i].get('long_form')) + str('|') + str(data[str(0)][i].get('num_tokens_short_form')) + str('|') + str(data[str(0)][i].get('num_chars_short_form')) + str('|') + str(data[str(0)][i].get('num_tokens_long_form')) + str('|') + str(data[str(0)][i].get('num_chars_long_form')) + str('|') + str(data[str(0)][i].get('pos_info'))) 
                             f.close()
 
             if machine_output == True:
+
+                temp_list_ut = []
+                for i in range(len(concepts)):
+                    if "phrase(" in concepts[i]:
+                        temp_list_ut.append(concepts[i])
+                text_list = []
+                for i in range(len(temp_list_ut)):
+                    matches = re.findall('phrase\(.+?,\[',temp_list_ut[i])
+                    size_text = int(str((temp_list_ut[i].split(',')[-2])).split('/')[1])
+                    matches[0] = matches[0].replace("\'", "")
+                    matches[0] = matches[0].replace('\"' , '')
+                    if len(matches[0][7:-2]) != size_text:
+                        diff = len(matches[0][7:-2]) - size_text
+                        text = (matches[0][int(7+(diff/2)):-int(2+diff/2)], int(str((temp_list_ut[i].split(',')[-2])).split('/')[0]))
+                        text_list.append(text)
+                    else:
+                        text = (matches[0][7:-2], int(str((temp_list_ut[i].split(',')[-2])).split('/')[0]))
+                        text_list.append(text)
+                full_text = str
+                for i in range(len(text_list)):
+                    if i == 0:
+                        full_text = text_list[i][0]
+                    else:
+                        diff = text_list[i][1] - text_list[i-1][1] - len(text_list[i-1][0])
+                        if diff != 0:
+                            if diff < 0:
+                                full_text = full_text[:diff]
+                            else:
+                                for k in range(diff):
+                                    full_text = str(str(full_text) + str(' '))
+                            full_text = full_text + text_list[i][0]
+                        else:
+                            full_text = full_text + text_list[i][0]
+
                 temp_list = []
                 for i in range(len(concepts)):
                     if 'ev(-' in concepts[i]:
@@ -189,7 +238,7 @@ def annotation_func(df,
                         current_semantic = current_square[1][:-1]
                         current_sab = current_square[-2][:-1]
                         current_pos = current_square[-1].strip('[]').split(',')[u]
-                        current_trigger = df[column_name][j][int(current_pos.strip('[]').split('/')[0])-1:int(int(current_pos.strip('[]').split('/')[0]) + int(current_pos.strip('[]').split('/')[1]))-1]
+                        current_trigger = full_text[int(current_pos.strip('[]').split('/')[0]):int(int(current_pos.strip('[]').split('/')[0]) + int(current_pos.strip('[]').split('/')[1]))]
                         current_occurrence = 1
                         if temp_anno[i][-2] == '1':
                             current_negation = 1
@@ -205,16 +254,19 @@ def annotation_func(df,
                         occurrence.append(int(current_occurrence))
                         negation.append(int(current_negation))
                         idx.append(str(df.iloc[j][unique_id]))
-                if extension_format == 'dict':
-                    for i in range(len(temp_anno)):
-                        f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
+
+                for i in range(len(temp_anno)):
+                    f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_output/{df.iloc[j][unique_id]}.{extension}", "a")
+                    if i != int(len(temp_anno)-1):
                         f.write(str(str(temp_anno[i]) + ('\n')))
-                        f.close()
-                elif extension_format == 'terminal':
-                    for i in range(len(temp_anno)):
-                        f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", "a")
-                        f.write(str(str(temp_anno[i]) + ('\n')))
-                        f.close()
+                    else:
+                        f.write(str(temp_anno[i]))
+                    f.close()
+                
+                f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_input/{df.iloc[j][unique_id]}.{extension}", "a")
+                f.write(str(full_text))
+                f.close()
+
             
         if df.iloc[j][unique_id] not in idx:
             f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt", "a")
@@ -230,7 +282,6 @@ def annotation_func(df,
                     {'semantic_type': list_of_semtypes,
                     'umls_preferred_name': list_of_preferred_names,
                     'occurrence': occurrence,
-                    'negation': negation,
                     'cui': list_of_cuis,
                     'annotation': list_of_annotations,
                     f'{unique_id}' : idx
@@ -263,7 +314,6 @@ def annotation_func(df,
             {'semantic_type': list_of_semtypes,
             'umls_preferred_name': list_of_preferred_names,
             'occurrence': occurrence,
-            'negation': negation,
             'cui': list_of_cuis,
             'annotation': list_of_annotations,
             f'{unique_id}' : idx
@@ -315,7 +365,7 @@ def annotation_func(df,
     annotated_df["semantic_group_name"] = semantic_group_name_list  
 
     if fielded_mmi_output == True:
-        annotated_df = annotated_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+        annotated_df = annotated_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
     if machine_output == True:
         annotated_df = annotated_df[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
 

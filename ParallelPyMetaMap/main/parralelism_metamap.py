@@ -18,7 +18,7 @@ def ppmm(numbers_of_cores,
         column_name = 'content_text',
         unique_id = 'pmid',
         extension = 'txt',
-        extension_format = 'terminal',
+        extension_format = None,
         restart = False,
         path_to_file = None,
         file = None,
@@ -86,12 +86,27 @@ def ppmm(numbers_of_cores,
         return None
         exit()
 
-    if extension_format == 'dict' or extension_format == 'terminal':
+    if extension_format == 'dict' or extension_format == 'terminal' or extension_format == None:
         pass
     else:
-        print("Your extension_format parameter should be equal to 'dict' or 'terminal' please enter a valid parameter.")
+        print("Your extension_format parameter should be equal to 'dict' or 'terminal' for mmi output or 'None' for mo output please enter a valid parameter.")
         return None
         exit()
+    
+    if fielded_mmi_output == True:
+        if extension_format == 'dict' or extension_format == 'terminal':
+            pass
+        else:
+            print("You are running the your code with the 'fielded_mmi_output' parameter please change the 'extension_format' to 'dict' or 'terminal'.")
+            return None
+            exit()
+    else:
+        if extension_format == None:
+            pass
+        else:
+            print("You are running the your code with the 'machine_output' parameter please change 'extension_format' to 'None'.")
+            return None
+            exit()
 
     if len(df) < par_core:
             par_core = len(df)
@@ -144,7 +159,7 @@ def ppmm(numbers_of_cores,
 
             if fielded_mmi_output == True:  
                 df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
-                df_processed = df_processed[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                df_processed = df_processed[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
             if machine_output == True:
                 df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
                 df_processed = df_processed[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
@@ -154,8 +169,8 @@ def ppmm(numbers_of_cores,
                     for i in range(count_temp_files):
                         df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
                         if fielded_mmi_output == True:
-                            if df_dynamic.shape[1] == 9:
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                            if df_dynamic.shape[1] == 8:
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
                                 df_processed = pd.concat([df_processed, df_dynamic])
                                 if type(concat_df) == None:
                                     concat_df = df_dynamic
@@ -184,7 +199,7 @@ def ppmm(numbers_of_cores,
                                         semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
                                     semantic_group_name_list.append(semantic_group_name_list_current)
                                 df_dynamic["semantic_group_name"] = semantic_group_name_list
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
                                 df_processed = pd.concat([df_processed, df_dynamic])
                                 if type(concat_df) == None:
                                     concat_df = df_dynamic
@@ -252,8 +267,8 @@ def ppmm(numbers_of_cores,
                     for i in range(count_temp_files):
                         df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
                         if fielded_mmi_output == True:
-                            if df_dynamic.shape[1] == 9:
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                            if df_dynamic.shape[1] == 8:
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
                                 if type(concat_df) == None:
                                     concat_df = df_dynamic
                                 else:
@@ -279,7 +294,7 @@ def ppmm(numbers_of_cores,
                                         semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
                                     semantic_group_name_list.append(semantic_group_name_list_current)
                                 df_dynamic["semantic_group_name"] = semantic_group_name_list
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'annotation', f'{unique_id}']]
+                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
                                 if type(concat_df) == None:
                                     concat_df = df_dynamic
                                 else:
