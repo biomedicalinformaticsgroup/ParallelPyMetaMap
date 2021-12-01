@@ -3,6 +3,7 @@ import pickle
 import pandas as pd 
 import numpy as np
 import re
+import unicodedata
 from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
 from ParallelPyMetaMap.main.removeNonAscii import removeNonAscii
@@ -74,6 +75,7 @@ def annotation_func(df,
             pass
         else:
             term = removeNonAscii(df[column_name][j])
+            term = unicodedata.normalize("NFKD", term)
             term = term.replace('\n', ' ')
             term = term.replace('\r', ' ')
             term = term.replace('\t', ' ')
