@@ -2,10 +2,10 @@ import setuptools
    
 setuptools.setup(
     name="ParallelPyMetaMap",
-    version="0.1.1",
+    version="0.1.2",
     author="Antoine Lain, Jamie Campbell, Ian Simpson",
     author_email="Antoine.Lain@ed.ac.uk, Ian.Simpson@ed.ac.uk",
-    description="This code is to run PyMetaMap in parallel.",
+    description="This code is to run MetaMap in parallel using Python.",
     packages=setuptools.find_packages(),
     classifiers=[
         "Intended Audience :: Science/Research",
