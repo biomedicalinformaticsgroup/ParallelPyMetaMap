@@ -88,6 +88,14 @@ You can find bellow the list of all the MetaMap options implemented in ParallelP
 
 You can find out more about these options on the National Library of Medecine website: [Documentation: Using MetaMap & options](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/documentation/UsingMetaMap.html), you will usually find the information about the options in the 'Usage Notes'.
 
+## Load the result
+
+The output from ParallelPyMetaMap is a Pickle object. In order to open the result use the following two lines of code.
+
+```python
+import pickle
+retrieved_df = pickle.load(open('./output_ParallelPyMetaMap_{column_name}_{mmi (for fielded_mmi_output) or mo (for machine_output)}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+
 ## Fielded MMI Output Structure
 
 In order to produce a Fielded MMI Output you need to use the following structure of code:
