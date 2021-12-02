@@ -95,6 +95,7 @@ The output from ParallelPyMetaMap is a Pickle object. In order to open the resul
 ```python
 import pickle
 retrieved_df = pickle.load(open('./output_ParallelPyMetaMap_{column_name}_{mmi (for fielded_mmi_output) or mo (for machine_output)}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
+```
 
 ## Fielded MMI Output Structure
 
