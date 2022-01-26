@@ -237,7 +237,8 @@ def annotation_func(df,
                         curent_cui = str(temp_anno[i].split(',')[1]).strip("'")
                         current_prefered = str(temp_anno[i].split(',')[3]).strip("'")
                         current_square = re.findall('\[.+?\],',temp_anno[i])
-                        current_semantic = current_square[1][:-1]
+                        current_semantic_identification = re.findall(',\[.+[a-z,]\],', temp_anno[i])
+                        current_semantic = current_semantic_identification[0].split(',[')[-1][:-2]
                         current_sab = current_square[-2][:-1]
                         current_pos = current_square[-1].strip('[]').split(',')[u]
                         current_trigger = full_text[int(current_pos.strip('[]').split('/')[0]):int(int(current_pos.strip('[]').split('/')[0]) + int(current_pos.strip('[]').split('/')[1]))]
