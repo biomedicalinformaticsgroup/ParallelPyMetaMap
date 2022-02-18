@@ -18,7 +18,7 @@ ParallelPyMetaMap has several dependencies on other Python packages, it is recom
 
 `pip install ./ParallelPyMetaMap`
 
-After instalation, you can remove the file if you want using:
+After installation, you can remove the file if you want using:
 
 `rm -rf ParallelPyMetaMap`
 

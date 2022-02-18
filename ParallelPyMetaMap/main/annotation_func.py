@@ -337,7 +337,7 @@ def annotation_func(df,
         annotated_df = annotated_df.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
         annotated_df = annotated_df.reset_index(drop=True)
         annotated_df['pos_info'] = annotated_df['pos_info'].str.strip('[]').str.split(',')
-        aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': lambda x: list(x), 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
+        aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': 'first', 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
         annotated_df = annotated_df.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
         annotated_df = annotated_df.reset_index()
 
