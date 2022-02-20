@@ -71,10 +71,10 @@ def annotation_func(df,
         print(str(current_time) + str(' We are at row ') + str(j+1) + str(' out of ') + str(len(df)) + str(' from proccess ') + bold.BEGIN + str(batch) + bold.END)
         print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str(round((float(j)/float(len(df)))*100, 2)) + str('%') + bold.END)
         print(str(current_time) + str(' Processing ') + str(df.iloc[j][unique_id]))
-        if df[column_name][j] != df[column_name][j] or df[column_name][j] == None or df[column_name][j] == '' or df[column_name][j][:4] == 'ABS:':
+        if df[column_name].iloc[j] != df[column_name].iloc[j] or df[column_name].iloc[j] == None or df[column_name].iloc[j] == '' or df[column_name].iloc[j][:4] == 'ABS:':
             pass
         else:
-            term = removeNonAscii(df[column_name][j])
+            term = removeNonAscii(df[column_name].iloc[j])
             term = unicodedata.normalize("NFKD", term)
             term = term.replace('\n', ' ')
             term = term.replace('\r', ' ')
