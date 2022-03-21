@@ -235,7 +235,8 @@ def annotation_func(df,
                         if temp_anno[i][-2] == '0':
                             current_score = current_score[0][4:-1]
                         curent_cui = str(temp_anno[i].split(',')[1]).strip("'")
-                        current_prefered = str(temp_anno[i].split(',')[3]).strip("'")
+                        current_prefered_search = re.findall(',\'.+?,\[',temp_anno[i])
+                        current_prefered = ','.join(current_prefered_search[0].split(",")[3:-1]).replace("'", "")
                         current_square = re.findall('\[.+?\],',temp_anno[i])
                         current_semantic_identification = re.findall(',\[.+[a-z,]\],', temp_anno[i])
                         current_semantic = current_semantic_identification[0].split(',[')[-1][:-2]
