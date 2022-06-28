@@ -5,6 +5,7 @@ from pathlib import Path
 import pickle
 from datetime import datetime
 import os
+import glob
 
 from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
@@ -19,7 +20,7 @@ def ppmm(numbers_of_cores,
         unique_id = 'pmid',
         extension = 'txt',
         extension_format = None,
-        restart = False,
+        #restart = False,
         path_to_file = None,
         file = None,
         composite_phrase=4,
@@ -68,13 +69,15 @@ def ppmm(numbers_of_cores,
         print('The number of cores you want to use is equal or greater than the numbers of cores in your machine. We stop the script now')
         return None
         exit()
-    elif numbers_of_cores < 4:
+    else:
+        par_core = numbers_of_cores
+    '''elif numbers_of_cores < 4:
         par_core = 1
     elif numbers_of_cores > 3:
-        par_core = (numbers_of_cores - 2)
+        par_core = (numbers_of_cores - 2)'''
 
     if path_to_file != None and file != None:
-        print('You need to input either a path to a Pickle object or a Pandas DataFrame. You can not input both!')
+        print('You need to input either a path to a Pickle object or a Pandas DataFrame. You can not input both.')
         return None
         exit()
     elif path_to_file != None:
@@ -137,7 +140,7 @@ def ppmm(numbers_of_cores,
 
     update = False
 
-    retrieved_path = [path for path in Path(f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df').iterdir() if path.stem == f'annotated_{column_name}_{unique_id}_df2']
+    retrieved_path = glob.glob(f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/*.json')
     if len(retrieved_path) == 0:
         update = False
     elif retrieved_path[0]:
@@ -145,7 +148,7 @@ def ppmm(numbers_of_cores,
     else:
         update = False
     
-    if restart == True and len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))]) == 0:
+    '''if restart == True and len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))]) == 0:
         print('There is/are no temporary_df(s) in the directory. The code never started to annotate. Please change the "restart" parameter to "False". You might want to check if you get another error.')
         return None
         exit()
@@ -345,18 +348,19 @@ def ppmm(numbers_of_cores,
             concat_df = concat_df.reset_index(drop=True)        
             pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
             pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
-            update = True
+            update = True'''
 
     if update == True:
-
-        df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
 
         list_original_index = []
         for i in range(len(df)):
             list_original_index.append(df.iloc[i][unique_id])
 
         list_check_index = []
-        list_check_index = list(np.unique(df_processed[unique_id]))
+        for i in range(len(retrieved_path)):
+            list_check_index.append(retrieved_path[i].split('/')[-1].split('.')[0])
+
+        list_check_index = list(np.unique(list_check_index))
 
         list_to_do = list(set(list_original_index) - set(list_check_index))
 
@@ -423,24 +427,6 @@ def ppmm(numbers_of_cores,
     with mp.Pool(numbers_of_cores) as pool:
         pool.starmap(annotation_func, data)
     
-    concat_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_1.p', 'rb'))
-    if par_core > 1:
-        for i in range(1,par_core):
-            df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
-            concat_df = pd.concat([concat_df, df_dynamic])
-
-
-    concat_df = concat_df.reset_index(drop=True)
-    pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
-    
-    if update == True:
-        final_df = pd.concat([df_processed, concat_df])
-    else:
-        final_df = concat_df
-
-    final_df = final_df.reset_index(drop=True)
-    pickle.dump(final_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
-
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
     print(str(current_time) + str(' Process complete'))

@@ -13,3 +13,5 @@ from ParallelPyMetaMap.timeout.job_summary import job_summary
 from ParallelPyMetaMap.timeout.timeout_metamap_process import timeout_metamap_process
 from ParallelPyMetaMap.main.df_semantictypes import df_semantictypes
 from ParallelPyMetaMap.main.df_semgroups import df_semgroups
+from ParallelPyMetaMap.main.machine_out_json_to_df import machine_out_json_to_df
+from ParallelPyMetaMap.main.mmi_json_to_df import mmi_json_to_df

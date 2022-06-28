@@ -4,8 +4,7 @@ def output_files(column_name, out_form, extension):
     #creating the directories we are planning on using the save the result of the system
     if out_form == 'mmi':
         for path in [f'output_ParallelPyMetaMap_{column_name}_{out_form}',
-                    f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df',
-                    f'output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df',
+                    f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json',
                     f'output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources',
                     f'output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files'
                     ]:
@@ -19,8 +18,7 @@ def output_files(column_name, out_form, extension):
 
     if out_form == 'mo':
         for path in [f'output_ParallelPyMetaMap_{column_name}_{out_form}',
-                    f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df',
-                    f'output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df',
+                    f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json',
                     f'output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources',
                     f'output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_output',
                     f'output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_input'

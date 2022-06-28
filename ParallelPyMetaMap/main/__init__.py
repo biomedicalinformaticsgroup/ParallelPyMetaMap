@@ -5,3 +5,5 @@ from ParallelPyMetaMap.main.parralelism_metamap import ppmm
 from ParallelPyMetaMap.main.output_files import output_files
 from ParallelPyMetaMap.main.df_semantictypes import df_semantictypes
 from ParallelPyMetaMap.main.df_semgroups import df_semgroups
+from ParallelPyMetaMap.main.machine_out_json_to_df import machine_out_json_to_df
+from ParallelPyMetaMap.main.mmi_json_to_df import mmi_json_to_df

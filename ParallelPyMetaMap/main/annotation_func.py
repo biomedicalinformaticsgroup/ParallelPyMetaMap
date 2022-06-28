@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import re
 import unicodedata
+import json
 from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
 from ParallelPyMetaMap.main.removeNonAscii import removeNonAscii
@@ -50,22 +51,29 @@ def annotation_func(df,
                     restrict_to_sts,
                     exclude_sts,
                     no_nums):
-
-    list_of_semtypes = []
-    list_of_cuis = []
-    list_of_preferred_names = []
-    list_of_annotations = []
-    idx = []
-    occurrence = []
-    negation = []
-    score = []
-    cui = []
-    prefered_name = []
-    trigger = []
-    semantic_list = []
-    sab = []
-    pos_info = []
+    df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+    semantictypes_abbr = list(df_semantictypes.abbreviation)
+    semantictypes_full_semantic_type_name = list(df_semantictypes.full_semantic_type_name)
+    semantictypes_dict = {semantictypes_abbr[i]: semantictypes_full_semantic_type_name[i] for i in range(len(semantictypes_abbr))}
+    df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
+    semanticgroup_sem_name = list(df_semgroups.full_semantic_type_name)
+    semanticgroup_sema_group_name = list(df_semgroups.semantic_group_name)
+    semanticgroup_dict = {semanticgroup_sem_name[i]: semanticgroup_sema_group_name[i] for i in range(len(semanticgroup_sem_name))}
     for j in range(len(df[column_name])):
+        list_of_semtypes = []
+        list_of_cuis = []
+        list_of_preferred_names = []
+        list_of_annotations = []
+        idx = []
+        occurrence = []
+        negation = []
+        score = []
+        cui = []
+        prefered_name = []
+        trigger = []
+        semantic_list = []
+        sab = []
+        pos_info = []
         now = datetime.now()
         current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
         print(str(current_time) + str(' We are at row ') + str(j+1) + str(' out of ') + str(len(df)) + str(' from proccess ') + bold.BEGIN + str(batch) + bold.END)
@@ -117,7 +125,6 @@ def annotation_func(df,
                                                  no_nums)
             if fielded_mmi_output == True:
                 data = concept2dict(concepts)
-                text = str
 
                 for i in range(len(data[str(0)])):
                     if 'preferred_name' and 'cui' in data[str(0)][i]:
@@ -128,7 +135,6 @@ def annotation_func(df,
                         list_of_preferred_names.append(data[str(0)][i]['preferred_name'])
                         list_of_cuis.append(data[str(0)][i]['cui'])
                         list_of_annotations.append(data[str(0)][i])
-                        text = data[str(0)][i].get('trigger')
                         occurrence.append(str(np.unique(str(data[str(0)][i].get('pos_info').replace(';', ',')).split(','))).count('/'))
                         idx.append(df.iloc[j][unique_id])
                         if extension_format == 'dict':
@@ -270,110 +276,89 @@ def annotation_func(df,
                 f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_input/{df.iloc[j][unique_id]}.{extension}", "a")
                 f.write(str(full_text))
                 f.close()
+      
+            if df.iloc[j][unique_id] not in idx:
+                f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt", "a")
+                f.write(str(df.iloc[j][unique_id]) + str('\n'))
+                f.close()
+            else:
+                if fielded_mmi_output == True:
+                    annotated_df = pd.DataFrame(
+                        {'semantic_type': list_of_semtypes,
+                        'umls_preferred_name': list_of_preferred_names,
+                        'occurrence': occurrence,
+                        'cui': list_of_cuis,
+                        'annotation': list_of_annotations,
+                        f'{unique_id}' : idx
+                        })
+                    annotated_df['semantic_type'] = annotated_df['semantic_type'].str.strip('[]').str.split(',')
 
-            
-        if df.iloc[j][unique_id] not in idx:
-            f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt", "a")
-            f.write(str(df.iloc[j][unique_id]) + str('\n'))
-            f.close()
+                if machine_output == True:
+                    annotated_df = pd.DataFrame(
+                        {'score': score, 
+                        'cui': cui, 
+                        'prefered_name': prefered_name, 
+                        'trigger': trigger, 
+                        'semantic_type': semantic_list, 
+                        'sab': sab, 
+                        'pos_info': pos_info, 
+                        'occurrence': occurrence, 
+                        'negation': negation, 
+                        f'{unique_id}': idx
+                        })
+                    annotated_df = annotated_df.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
+                    annotated_df = annotated_df.reset_index(drop=True)
+                    annotated_df['pos_info'] = annotated_df['pos_info'].str.strip('[]').str.split(',')
+                    aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': 'first', 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
+                    annotated_df = annotated_df.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
+                    annotated_df = annotated_df.reset_index()
 
-        if fielded_mmi_output == True:
-            if (j % 100 == 0 and j != 0):
-                now = datetime.now()
-                current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
-                print(str(current_time) + str(' Saving file'))
-                annotated_df = pd.DataFrame(
-                    {'semantic_type': list_of_semtypes,
-                    'umls_preferred_name': list_of_preferred_names,
-                    'occurrence': occurrence,
-                    'cui': list_of_cuis,
-                    'annotation': list_of_annotations,
-                    f'{unique_id}' : idx
-                    })
-                pickle.dump(annotated_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{batch}.p', 'wb'))
-        if machine_output == True:
-            if (j % 100 == 0 and j != 0):
-                now = datetime.now()
-                current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
-                print(str(current_time) + str(' Saving file'))
-                annotated_df = pd.DataFrame(
-                    {'score': score, 
-                    'cui': cui, 
-                    'prefered_name': prefered_name, 
-                    'trigger': trigger, 
-                    'semantic_type': semantic_list, 
-                    'sab': sab, 
-                    'pos_info': pos_info, 
-                    'occurrence': occurrence, 
-                    'negation': negation, 
-                    f'{unique_id}': idx
-                    })
-                pickle.dump(annotated_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{batch}.p', 'wb'))
-                
-    now = datetime.now()
-    current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
-    print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str(round((float(j+1)/float(len(df)))*100, 2)) + str('%') + bold.END)
-    if fielded_mmi_output == True:
-        annotated_df = pd.DataFrame(
-            {'semantic_type': list_of_semtypes,
-            'umls_preferred_name': list_of_preferred_names,
-            'occurrence': occurrence,
-            'cui': list_of_cuis,
-            'annotation': list_of_annotations,
-            f'{unique_id}' : idx
-            })
-    if machine_output == True:
-        annotated_df = pd.DataFrame(
-            {'score': score, 
-            'cui': cui, 
-            'prefered_name': prefered_name, 
-            'trigger': trigger, 
-            'semantic_type': semantic_list, 
-            'sab': sab, 
-            'pos_info': pos_info, 
-            'occurrence': occurrence, 
-            'negation': negation, 
-            f'{unique_id}': idx
-            })
-        annotated_df = annotated_df.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
-        annotated_df = annotated_df.reset_index(drop=True)
-        annotated_df['pos_info'] = annotated_df['pos_info'].str.strip('[]').str.split(',')
-        aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': 'first', 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
-        annotated_df = annotated_df.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
-        annotated_df = annotated_df.reset_index()
+                full_semantic_type_name_list = []
+                for i in range(len(annotated_df)):
+                    full_semantic_type_name_list_current = []
+                    for j in range(len(annotated_df.iloc[i].semantic_type)): 
+                        full_semantic_type_name_list_current.append(semantictypes_dict.get(annotated_df.iloc[i].semantic_type[j]))
+                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
+                annotated_df["full_semantic_type_name"] = full_semantic_type_name_list
 
-    now = datetime.now()
-    current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
-    print(str(current_time) + str(' Adding full_semantic_type_name and semantic_group_name to the result for ')+ str('proccess ') + bold.BEGIN + str(batch) + bold.END)
-    
-    if fielded_mmi_output == True:
-        annotated_df['semantic_type'] = annotated_df['semantic_type'].str.strip('[]').str.split(',')
+                semantic_group_name_list = []
+                for i in range(len(annotated_df)):
+                    semantic_group_name_list_current = []
+                    for j in range(len(annotated_df.iloc[i].semantic_type)): 
+                        semantic_group_name_list_current.append(semanticgroup_dict.get(annotated_df.iloc[i].full_semantic_type_name[j]))
+                    semantic_group_name_list.append(semantic_group_name_list_current)
+                annotated_df["semantic_group_name"] = semantic_group_name_list  
 
-    df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-    df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
-
-    full_semantic_type_name_list = []
-    for i in range(len(annotated_df)):
-        full_semantic_type_name_list_current = []
-        for j in range(len(annotated_df.iloc[i].semantic_type)): 
-            full_semantic_type_name_list_current.append(df_semantictypes[df_semantictypes.abbreviation == annotated_df.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-        full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-    annotated_df["full_semantic_type_name"] = full_semantic_type_name_list
-
-    semantic_group_name_list = []
-    for i in range(len(annotated_df)):
-        semantic_group_name_list_current = []
-        for j in range(len(annotated_df.iloc[i].semantic_type)): 
-            semantic_group_name_list_current.append(df_semgroups[df_semgroups.full_semantic_type_name == annotated_df.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-        semantic_group_name_list.append(semantic_group_name_list_current)
-    annotated_df["semantic_group_name"] = semantic_group_name_list  
-
-    if fielded_mmi_output == True:
-        annotated_df = annotated_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
-    if machine_output == True:
-        annotated_df = annotated_df[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
-
-    now = datetime.now()
-    current_time = now.strftime("%d/%m/%Y, %H:%M:%S")
-    print(str(current_time) + str(' Saving file for proccess ') + bold.BEGIN + str(batch) + bold.END)
-    pickle.dump(annotated_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{batch}.p', 'wb'))
+                if fielded_mmi_output == True:
+                    annotated_df = annotated_df[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
+                    current_dict = {}
+                    for i in range(len(annotated_df)):
+                        current_dict[f"{annotated_df.iloc[i].cui}"] = {
+                            'umls_preferred_name': annotated_df.iloc[i].umls_preferred_name,
+                            'semantic_type': annotated_df.iloc[i].semantic_type,
+                            'full_semantic_type_name': annotated_df.iloc[i].full_semantic_type_name,
+                            'semantic_group_name': annotated_df.iloc[i].semantic_group_name,
+                            'occurrence': float(annotated_df.iloc[i].occurrence),
+                            'annotation': annotated_df.iloc[i].annotation
+                        }
+                    with open(f"output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/{idx[0]}.json", "w") as write_file:
+                        json.dump(current_dict, write_file, indent=4)
+                if machine_output == True:
+                    annotated_df = annotated_df[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
+                    current_dict = {}
+                    for i in range(len(annotated_df)):
+                        current_dict[f"{annotated_df.iloc[i].cui}"] = {
+                            'prefered_name': annotated_df.iloc[i].prefered_name,
+                            'semantic_type': annotated_df.iloc[i].semantic_type,
+                            'full_semantic_type_name': annotated_df.iloc[i].full_semantic_type_name,
+                            'semantic_group_name': annotated_df.iloc[i].semantic_group_name,
+                            'occurrence': float(annotated_df.iloc[i].occurrence),
+                            'negation': float(annotated_df.iloc[i].negation),
+                            'trigger': annotated_df.iloc[i].trigger,
+                            'sab': annotated_df.iloc[i].sab,
+                            'pos_info': annotated_df.iloc[i].pos_info,
+                            'score': annotated_df.iloc[i].score
+                        }
+                    with open(f"output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/{idx[0]}.json", "w") as write_file:
+                        json.dump(current_dict, write_file, indent=4)
+    print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str('100%') + bold.END)
