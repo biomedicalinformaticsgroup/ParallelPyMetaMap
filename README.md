@@ -34,7 +34,7 @@ from ParallelPyMetaMap import ppmm
 
 ppmm(NUMBER_OF_CORE(S)_TO_USE, 
     PATH_TO_METAMAP,
-    file or path_to_file,
+    file or path_to_file or cadmus or path_to_directory,
     column_name, 
     unique_id,
     machine_output or (fielded_mmi_output and extension_format)
@@ -47,11 +47,14 @@ Mandatory parameters:
 - column_name = 'content_text': this parameter as 'content_text' has default value, which is the column that contains the text from cadmus. You need to input the name of the column where the text you want to annotate is stored. 
 - unique_id = 'pmid': the default value is 'pmid', again this value has been chosen if your input is from cadmus. You need here to provide the name of the column that can act as a key. It must be unique, without space and no escape characters. 
 - extension_format = None: this parameter depends on if you are running the code using fielded_mmi_output or machine_output. The default value is None, the None value will only work if you are running the code using machine_output. If you are using fielded_mmi_output, you need to decide if you want your annotated files to be structured like in the terminal then extension_format = 'terminal' or if you prefer your files to be Python like dictionaries then extension_format = 'dict'. 
-- path_to_file = None or file = None: both parameters have None has default value, you are required to only change one of the two. 'path_to_file' takes a string to the destination of the DataFrame, in a pickle object, you want to annotate. 'file' you can directly input your Pandas DataFrame.
+- file = None: None has default value, you are required to only change file or cadmus or path_to_file or path_to directory from None. 'file' you can directly input your Pandas DataFrame.
+- cadmus = None: If using a cadmus output you need to mention: abstract, content_text, pdf, html, xml or plain_text in the column_name. Older and rencent cadmus output are accepted.
+- path_to_file = None: takes a string to the destination of the DataFrame saved in: .json, .p, .csv, .tsv, .json.zip.
+- path_to_directory = None: takes a string to a directory of files to annotate. This directory must contain .txt and .txt.zip file formats. With this parameter column_name will automaticly be changed to 'text'.
+
 
 Optional parameters:
 - extension = 'txt': 'extension' has 'txt' as default value. During the process we save the annotation produced by MetaMap in a file, here you can set the extension of these files. 
-- restart = False: in case your code faces failure while running, you can switch the default value from False to True. In that case, the function will start by looking at the temporary file(s) to restart from the previous save. 
 - verbose = False: MetaMap can show you the sentences while processesing them. The default value is set to False. When set to False, the function only shows a summary of where the function is at. If you want to see the sentences being processed live, change the default to True.
 
 You can find bellow the list of all the MetaMap options implemented in ParallelPyMetaMap with their associated default values:
@@ -88,7 +91,22 @@ You can find out more about these options on the National Library of Medicine we
 
 ## What is the result?
 
-The annotations from ParallelPyMetaMap are saved in a folder of jsons files stored at ```'./output_ParallelPyMetaMap_{column_name}_{mmi (for fielded_mmi_output) or mo (for machine_output)}/annotated_json/{unique_id}.json'```. You can open the files using the json library and the ```json.load(unique_id)``` command. We also provide functions to open all the jsons and save the result in one Pandas DataFrame, more details later on the readme.
+The annotations from ParallelPyMetaMap are saved in a folder of zipped jsons files stored at ```'./output_ParallelPyMetaMap_{column_name}_{mmi (for fielded_mmi_output) or mo (for machine_output)}/annotated_json/{unique_id}.json.zip'```. You can open the files using the json and zipfile libraries an example is showed bellow. We also provide functions to open all the jsons and collate the result in one Pandas DataFrame, more details later on the readme.
+
+```python
+import zipfile
+import json
+
+with zipfile.ZipFile($PATH_TO_YOUR_FILE$, "r") as z:
+    for filename in z.namelist():
+        with z.open(filename) as f:
+            d = f.read()
+            content = json.loads(d)
+
+
+f.close()
+z.close()
+```
 
 ## Fielded MMI Output Structure
 
@@ -98,7 +116,7 @@ from ParallelPyMetaMap import ppmm
 
 ppmm(NUMBER_OF_CORE(S)_TO_USE, 
     PATH_TO_METAMAP,
-    file or path_to_file,
+    file or path_to_file or cadmus or path_to_directory,
     column_name, 
     unique_id,
     fielded_mmi_output = True,
@@ -106,7 +124,7 @@ ppmm(NUMBER_OF_CORE(S)_TO_USE,
     )
 ```
 
-The results for each processed text are saved in a json file within the ```'./output_ParallelPyMetaMap_{column_name}_mmi/annotated_json/{unique_id}.json'``` directory. Each json file, named ```{unique_id}.json```, contains dictionnaries where the key is the CUI (UMLS Concept Unique Identifier) and the values are the information associated to this CUI.
+The results for each processed text are saved in zipped json file within the ```'./output_ParallelPyMetaMap_{column_name}_mmi/annotated_json/{unique_id}.json.zip'``` directory. Each json file, named ```{unique_id}.json.zip```, contains dictionnaries where the key is the CUI (UMLS Concept Unique Identifier) and the values are the information associated to this CUI.
 Each file contains:
 
 - cui <class 'str'> - The CUI is the key for each dictionary within the file.
@@ -125,8 +143,8 @@ Each file contains:
   - You can find more about the annotation from the MetaMap documentation (https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/Docs/MMI_Output.pdf). 
 
 Other Outputs:
-- ```"./output_ParallelPyMetaMap_{column_name}_mo/extra_resources"``` contains a {unique_id}_to_avoid.txt that keeps the {unique_id} of failed attempts to annotate a text due to either insufficient memory or that they exceed the timeout. It also has 2 Pandas DataFrame that have the Semantic Type full name and the Semantic Group full name.
-- ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files"``` is composed of files with all the annotations from MetaMap. Files are saved using {unique_id}.{extension_format}.
+- ```"./output_ParallelPyMetaMap_{column_name}_mo/extra_resources"``` contains a {unique_id}_to_avoid.txt that keeps the {unique_id} of failed attempts to annotate a text due to either insufficient memory or that they exceed the timeout. It also has 2 zipped json Pandas DataFrame that have the Semantic Type full name and the Semantic Group full name.
+- ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files"``` is composed of zipped files with all the annotations from MetaMap. Files are saved using {unique_id}.{extension_format}.zip.
 
 ## Machine Output Structure
 
@@ -136,14 +154,14 @@ from ParallelPyMetaMap import ppmm
 
 ppmm(NUMBER_OF_CORE(S)_TO_USE, 
     PATH_TO_METAMAP,
-    file or path_to_file,
+    file or path_to_file or cadmus or path_to_directory,
     column_name, 
     unique_id,
     machine_output = True
     )
 ```
 
-The results for each processed text are saved in a json file within the ```'./output_ParallelPyMetaMap_{column_name}_mo/annotated_json/{unique_id}.json'``` directory. Each json file, named ```{unique_id}.json```, contains dictionnaries where the key is the CUI (UMLS Concept Unique Identifier) and the values are the information associated to this CUI.
+The results for each processed text are saved in zipped json file within the ```'./output_ParallelPyMetaMap_{column_name}_mo/annotated_json/{unique_id}.json.zip'``` directory. Each json file, named ```{unique_id}.json.zip```, contains dictionnaries where the key is the CUI (UMLS Concept Unique Identifier) and the values are the information associated to this CUI.
 Each file contains:
 
 - cui <class 'str'> - The CUI is the key for each dictionary within the file.
@@ -170,9 +188,9 @@ Each file contains:
   - The score has a maximum value of 1000.00. The higher the score, the greater the relevance of the UMLS concept according to MetaMap. When the trigger was considered has negative/absent the score is negative in that case the highest value is -1000.00.
 
 Other Outputs:
-- ```"./output_ParallelPyMetaMap_{column_name}_mo/extra_resources"``` contains a {unique_id}_to_avoid.txt that keeps the {unique_id} of failed attempts to annotate a text due to either insufficient memory or that they exceed the timeout. It also has 2 Pandas DataFrame that have the Semantic Type full name and the Semantic Group full name.
-- ```"./output_ParallelPyMetaMap_{column_name}_mo/txt_files_input"```, for MetaMap to process your input text, a formatting is necessary to remove non ascii and escape characters. We save the input text that MetaMap is using so that you can use the pos_info to read the full sentences. Files are saved using {unique_id}.txt.
-- ```"./output_ParallelPyMetaMap_{column_name}_mo/txt_files_output"``` is composed of files with all the candidates from MetaMap. Files are saved using {unique_id}.txt.
+- ```"./output_ParallelPyMetaMap_{column_name}_mo/extra_resources"``` contains a {unique_id}_to_avoid.txt that keeps the {unique_id} of failed attempts to annotate a text due to either insufficient memory or that they exceed the timeout. It also has 2 zipped json Pandas DataFrame that have the Semantic Type full name and the Semantic Group full name.
+- ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files_input"```, for MetaMap to process your input text, a formatting is necessary to remove non ascii and escape characters. We save the input text that MetaMap is using so that you can use the pos_info to read the full sentences. Files are saved using {unique_id}.{extension_format}.zip.
+- ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files_output"``` is composed of files with all the candidates from MetaMap. Files are saved using {unique_id}.{extension_format}.zip.
 
 ## Timeout
 
@@ -201,7 +219,7 @@ mmi_json_to_df(path = './', filtering = [], previous_df = None)
 ```
 The two functions above work the same way but handle different file structure. You will either use one or the other depending if you used the 'machine_output' or the 'fielded_mmi_output' parameter while annotating your text.
 Each function has three parameters:
-- path: You need to provide the path to the directory where the jsons are stored. For example, at the same level where you ran ppmm you will need to input ```path = './output_ParallelPyMetaMap_{column_name}_mo/annotated_json'```
+- path: You need to provide the path to the directory where the jsons are stored. For example, at the same level where you ran ppmm you will need to input ```path = './output_ParallelPyMetaMap_{column_name}_{mmi (for fielded_mmi_output) or mo (for machine_output)}/annotated_json'```
 - filtering: This parameter allows you to extracted only part of the available information from the json files. In order to use this parameter you need to input a list of strings out of all the fields described in the previous section. You can also input the string 'id' into your list to keep the {unique_id} in the dataframe if you want to.
 - previous_df: We like dynamic generation and because of that we know that new results can come and that we don't like to loose time re-runing code that has already been processed. Here you can input a previous DataFrame that you have obtained using this code and we will only extracted the information from the new files to add it to your previous DataFrame. Be careful we don't save any result so you will have to do it. 
 
@@ -238,3 +256,25 @@ A: We do not check which version of MetaMap you are using, please read the docum
 Q: What is the performance of ParallelPyMetaMap?
 
 ParallelPyMetaMap is just a Python wrapper for MetaMap where extra information is added using other sources of information. We do not alter the entity recognition performance. To learn more about the performance of MetaMap please refer to this [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2995713/.)
+
+## Version
+
+### Version 0.1.6
+-> New input formats are implemented in this version:
+  -> cadmus
+  -> path to directory
+
+-> All the files we are creating are now zipped to save storage space. There is an automatic conversion of previous results in your next run.
+
+-> The restart option is removed as restarting is now automatic as soon as the code is re-run.
+
+-> path_to_file parameter accepts now the following file formats:
+  -> .json
+  -> .p (pickle object)
+  -> .csv
+  -> .tsv
+  -> .json.zip
+
+-> path_to_directory is parsing the following file formats:
+  -> .txt
+  -> .txt.zip

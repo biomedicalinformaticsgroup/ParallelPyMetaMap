@@ -1,6 +1,8 @@
 import requests
 import pickle
+import json
 import pandas as pd
+import zipfile
 
 def df_semgroups(column_name, out_form):
     url = "https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/Docs/SemGroups_2018.txt"
@@ -23,4 +25,9 @@ def df_semgroups(column_name, out_form):
 
     dict = {'semantic_group_abbrev': semantic_group_abbrev, 'semantic_group_name' : semantic_group_name, 'type_unique_identifier': type_unique_identifier, 'full_semantic_type_name': full_semantic_type_name} 
     df_semgroups = pd.DataFrame(dict)
-    pickle.dump(df_semgroups, open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p", "wb"))
+    result = df_semgroups.to_json(orient="index")
+    with zipfile.ZipFile(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.json.zip", mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
+        dumped_JSON: str = json.dumps(result, indent=4)
+        zip_file.writestr("df_semgroups.json", data=dumped_JSON)
+        zip_file.testzip()
+    zip_file.close()

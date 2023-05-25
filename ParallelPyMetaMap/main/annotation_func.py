@@ -1,5 +1,5 @@
 from datetime import datetime
-import pickle
+import json
 import pandas as pd 
 import numpy as np
 import re
@@ -9,6 +9,8 @@ from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
 from ParallelPyMetaMap.main.removeNonAscii import removeNonAscii
 from ParallelPyMetaMap.main.concept2dict import concept2dict
+import zipfile
+import os
 
 class bold:
    BEGIN = '\033[1m'
@@ -17,6 +19,8 @@ class bold:
 def annotation_func(df, 
                     batch, 
                     mm,
+                    cadmus,
+                    path_to_directory,
                     column_name,
                     out_form,
                     unique_id,
@@ -51,15 +55,29 @@ def annotation_func(df,
                     restrict_to_sts,
                     exclude_sts,
                     no_nums):
-    df_semantictypes = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
+    with zipfile.ZipFile(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.json.zip', "r") as z:
+        for sem_filename in z.namelist():  
+            with z.open(sem_filename) as f:  
+                d = f.read()  
+                d = json.loads(d)    
+            f.close()
+    z.close()
+    df_semantictypes = pd.read_json(d, orient='index')
     semantictypes_abbr = list(df_semantictypes.abbreviation)
     semantictypes_full_semantic_type_name = list(df_semantictypes.full_semantic_type_name)
     semantictypes_dict = {semantictypes_abbr[i]: semantictypes_full_semantic_type_name[i] for i in range(len(semantictypes_abbr))}
-    df_semgroups = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
+    with zipfile.ZipFile(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.json.zip', "r") as z:
+        for group_filename in z.namelist():  
+            with z.open(group_filename) as f:  
+                d = f.read()  
+                d = json.loads(d)    
+            f.close()
+    z.close()
+    df_semgroups = pd.read_json(d, orient='index')
     semanticgroup_sem_name = list(df_semgroups.full_semantic_type_name)
     semanticgroup_sema_group_name = list(df_semgroups.semantic_group_name)
     semanticgroup_dict = {semanticgroup_sem_name[i]: semanticgroup_sema_group_name[i] for i in range(len(semanticgroup_sem_name))}
-    for j in range(len(df[column_name])):
+    for j in range(len(df)):
         list_of_semtypes = []
         list_of_cuis = []
         list_of_preferred_names = []
@@ -79,10 +97,35 @@ def annotation_func(df,
         print(str(current_time) + str(' We are at row ') + str(j+1) + str(' out of ') + str(len(df)) + str(' from proccess ') + bold.BEGIN + str(batch) + bold.END)
         print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str(round((float(j)/float(len(df)))*100, 2)) + str('%') + bold.END)
         print(str(current_time) + str(' Processing ') + str(df.iloc[j][unique_id]))
-        if df[column_name].iloc[j] != df[column_name].iloc[j] or df[column_name].iloc[j] == None or df[column_name].iloc[j] == '' or df[column_name].iloc[j][:4] == 'ABS:':
+        if df[column_name].iloc[j] != df[column_name].iloc[j] or df[column_name].iloc[j] == None or df[column_name].iloc[j] == '':
             pass
         else:
-            term = removeNonAscii(df[column_name].iloc[j])
+            if cadmus == None and path_to_directory == None:
+                term = removeNonAscii(df[column_name].iloc[j])
+            else:
+                if '.zip' in df['file_path'].iloc[j]:
+                    with zipfile.ZipFile(f"{df['file_path'].iloc[j]}", "r") as z:
+                        for path_filename in z.namelist():
+                            with z.open(path_filename) as f:
+                                term = f.readline()
+                            f.close()
+                    z.close()
+                    if type(term) is str:
+                        pass
+                    elif type(term) is bytes:
+                        term = term.decode('utf-8')
+                    term = term.replace('\n', '')
+                    term = removeNonAscii(term)
+                else:
+                    f = open(f"{df['file_path'].iloc[j]}", "r")
+                    term = f.readline()
+                    f.close()
+                    if type(term) is str:
+                        pass
+                    elif type(term) is bytes:
+                        term = term.decode('utf-8')
+                    term = term.replace('\n', '')
+                    term = removeNonAscii(term)
             term = unicodedata.normalize("NFKD", term)
             term = term.replace('\n', ' ')
             term = term.replace('\r', ' ')
@@ -283,6 +326,14 @@ def annotation_func(df,
                 f.close()
             else:
                 if fielded_mmi_output == True:
+                    zipfile.ZipFile(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}.zip', mode='w').write(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}", arcname=f'{df.iloc[j][unique_id]}.{extension}')
+                    os.remove(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files/{df.iloc[j][unique_id]}.{extension}')
+                if machine_output == True:
+                    zipfile.ZipFile(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_input/{df.iloc[j][unique_id]}.{extension}.zip', mode='w').write(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_input/{df.iloc[j][unique_id]}.{extension}", arcname=f'{df.iloc[j][unique_id]}.{extension}')
+                    os.remove(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_input/{df.iloc[j][unique_id]}.{extension}')
+                    zipfile.ZipFile(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_output/{df.iloc[j][unique_id]}.{extension}.zip', mode='w').write(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_output/{df.iloc[j][unique_id]}.{extension}', arcname=f'{df.iloc[j][unique_id]}.{extension}')
+                    os.remove(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/{extension}_files_output/{df.iloc[j][unique_id]}.{extension}')
+                if fielded_mmi_output == True:
                     annotated_df = pd.DataFrame(
                         {'semantic_type': list_of_semtypes,
                         'umls_preferred_name': list_of_preferred_names,
@@ -341,8 +392,11 @@ def annotation_func(df,
                             'occurrence': float(annotated_df.iloc[i].occurrence),
                             'annotation': annotated_df.iloc[i].annotation
                         }
-                    with open(f"output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/{idx[0]}.json", "w") as write_file:
-                        json.dump(current_dict, write_file, indent=4)
+                    with zipfile.ZipFile(f"output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/{idx[0]}.json.zip", mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
+                        dumped_JSON: str = json.dumps(current_dict, indent=4)
+                        zip_file.writestr(f"{idx[0]}.json", data=dumped_JSON)
+                        zip_file.testzip()
+                    zip_file.close()
                 if machine_output == True:
                     annotated_df = annotated_df[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
                     current_dict = {}
@@ -359,6 +413,9 @@ def annotation_func(df,
                             'pos_info': annotated_df.iloc[i].pos_info,
                             'score': annotated_df.iloc[i].score
                         }
-                    with open(f"output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/{idx[0]}.json", "w") as write_file:
-                        json.dump(current_dict, write_file, indent=4)
+                    with zipfile.ZipFile(f"output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/{idx[0]}.json.zip", mode="w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip_file:
+                        dumped_JSON: str = json.dumps(current_dict, indent=4)
+                        zip_file.writestr(f"{idx[0]}.json", data=dumped_JSON)
+                        zip_file.testzip()
+                    zip_file.close()
     print(str('Proccess ') + bold.BEGIN + str(batch) + bold.END + str(' has completed ') + bold.BEGIN + str('100%') + bold.END)

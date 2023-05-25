@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import pickle
+import json
 from datetime import datetime
 import os
 import glob
+import zipfile
 
 from ParallelPyMetaMap.altered_pymetamap.MetaMap import MetaMap
 from ParallelPyMetaMap.altered_pymetamap.SubprocessBackend import SubprocessBackend
@@ -20,13 +22,20 @@ def ppmm(numbers_of_cores,
         unique_id = 'pmid',
         extension = 'txt',
         extension_format = None,
-        #restart = False,
         path_to_file = None,
         file = None,
+        cadmus = None,
+        path_to_directory = None,
+        sep = ',',
+        header = 'infer',
+        usecols = None,
+        nrows = None,
+        index_col = None,
+        skiprows = None,
         composite_phrase=4,
         fielded_mmi_output=False,
         machine_output=False,
-        filename=None,
+        filename = None,
         file_format='sldi',
         allow_acronym_variants=False,
         word_sense_disambiguation=False,
@@ -62,6 +71,10 @@ def ppmm(numbers_of_cores,
         out_form = 'mmi'
     else:
         out_form = 'mo'
+    
+    if type(path_to_directory) == str:
+        column_name = 'text'
+        unique_id = 'index_id'
 
     output_files(column_name, out_form, extension)
 
@@ -71,21 +84,99 @@ def ppmm(numbers_of_cores,
         exit()
     else:
         par_core = numbers_of_cores
-    '''elif numbers_of_cores < 4:
-        par_core = 1
-    elif numbers_of_cores > 3:
-        par_core = (numbers_of_cores - 2)'''
+    
+    NoneType = type(None)
+    number_of_input = 0
+    for i in [type(path_to_file), type(file), type(cadmus), type(path_to_directory)]:
+        if i != NoneType:
+            number_of_input += 1
 
-    if path_to_file != None and file != None:
-        print('You need to input either a path to a Pickle object or a Pandas DataFrame. You can not input both.')
+    if number_of_input != 1: 
+        print('You need to input either a path to a json file, a Pandas DataFrame, a cadmus output path or a directory to .txt files. You can not input more than one.')
         return None
         exit()
-    elif path_to_file != None:
-        df = pickle.load(open(path_to_file, 'rb'))
+    elif type(path_to_file) == str and path_to_file[-5] == '.json':
+        f = open(path_to_file)
+        data = json.load(f)
+        f.close()
+        df = pd.read_json(data, orient='index')
+    elif type(path_to_file) == str and path_to_file[-2] == '.p':
+        df = pickle.load(open('path_to_file','rb'))
+    elif type(path_to_file) == str and (path_to_file[-4] == '.csv' or path_to_file[-4] == '.tsv'):
+        df = pd.read_csv(path_to_file, sep, header, usecols, nrows, index_col, skiprows)
+    elif type(path_to_file) == str and path_to_file[-9] == '.json.zip':
+        with zipfile.ZipFile(path_to_file, "r") as z:
+            for path_filename in z.namelist():
+                with z.open(path_filename) as f:
+                    data = f.read()
+                    data = json.loads(data)
+        f.close()
+        z.close()
+        df = pd.read_json(data, orient='index')
+        if 'pmid' in df.columns:
+            df.pmid = df.pmid.astype(str)
     elif type(file) == pd.core.frame.DataFrame:
         df = file
+    elif type(cadmus) == str:
+        if len(glob.glob(f'{cadmus}/retrieved_df/*.json')) > 0:
+            f = open(f'{cadmus}/retrieved_df/retrieved_df2.json')
+            data = json.load(f)
+            f.close()
+            df = pd.read_json(data, orient='index')
+        elif len(glob.glob(f'{cadmus}/retrieved_df/*.zip')) > 0:
+            with zipfile.ZipFile(f'{cadmus}/retrieved_df/retrieved_df2.json.zip', "r") as z:
+                for cad_filename in z.namelist():
+                    with z.open(cad_filename) as f:
+                        data = f.read()
+                        data = json.loads(data)
+            f.close()
+            z.close()
+            df = pd.read_json(data, orient='index')
+            df.pmid = df.pmid.astype(str)
+        else:
+            print('PPMM is not able to find retrieved_df2 in your cadmus directory.')
+            return None
+            exit()
+        if column_name == 'abstract':
+            pass
+        else:
+            df = df[df[f'{column_name}'] == 1]
+            df = df[[f'{column_name}', f'{unique_id}']]
+            path_to_cadmus_files = []
+            if column_name == 'content_text':
+                all_content = glob.glob(f'{cadmus}/retrieved_parsed_files/{column_name}/*')
+                for i in range(len(df)):
+                    for j in range(len(all_content)):
+                        if df.index[i] in all_content[j]:
+                            if len(glob.glob(f'{cadmus}/retrieved_parsed_files/{column_name}/{str(df.index[i]) + str(".txt")}')) > 0:
+                                path_to_cadmus_files.append(str(cadmus) + str(f'/retrieved_parsed_files/{column_name}/') + str(df.index[i]) + str('.txt'))
+                            elif len(glob.glob(f'{cadmus}/retrieved_parsed_files/{column_name}/{str(df.index[i]) + str(".txt.zip")}')) > 0:
+                                path_to_cadmus_files.append(str(cadmus) + str(f'/retrieved_parsed_files/{column_name}/') + str(df.index[i]) + str('.txt.zip'))
+
+            else:
+                for i in range(len(df)):
+                    if len(glob.glob(f'{cadmus}/retrieved_parsed_files/{column_name}s/{str(df.index[i]) + str(".txt")}')) > 0:
+                        path_to_cadmus_files.append(str(cadmus) + str(f'/retrieved_parsed_files/{column_name}s/') + str(df.index[i]) + str('.txt'))
+                    elif len(glob.glob(f'{cadmus}/retrieved_parsed_files/{column_name}s/{str(df.index[i]) + str(".txt.zip")}')) > 0:
+                        path_to_cadmus_files.append(str(cadmus) + str(f'/retrieved_parsed_files/{column_name}s/') + str(df.index[i]) + str('.txt.zip'))
+            df['file_path'] = path_to_cadmus_files
+    
+    elif type(path_to_directory) == str:
+        if len(glob.glob(f'{path_to_directory}/*.txt', recursive=True)) > 0:
+            all_txts = glob.glob(f'{path_to_directory}/*.txt', recursive=True)
+        elif len(glob.glob(f'{path_to_directory}/*.txt.zip', recursive=True)) > 0:
+            all_txts = glob.glob(f'{path_to_directory}/*.txt.zip', recursive=True)
+        text = []
+        index = []
+        path_to_directory_files = []
+        for i in range(len(all_txts)):
+            text.append(1)
+            index.append(all_txts[i].split('/')[-1][:-4])
+            path_to_directory_files.append(all_txts[i])
+        df = pd.DataFrame(list(zip(text, index, path_to_directory_files)),
+                columns =['text', 'index_id', 'file_path'])
     else:
-        print('You did not input any data to process')
+        print('You did not input any correct data format to process')
         return None
         exit()
 
@@ -114,241 +205,43 @@ def ppmm(numbers_of_cores,
     if len(df) < par_core:
             par_core = len(df)
     
-    pmids = []
-    for i in range(len(df)):
-        if df[column_name][i] != df[column_name][i] or df[column_name][i] == None or df[column_name][i] == '' or df[column_name][i][:4] == 'ABS:':
-            pass
-        else:
-            if len(df.iloc[i][column_name].split()) > 150000:
+    if cadmus == None and path_to_directory == None:
+        pmids = []
+        for i in range(len(df)):
+            if df[column_name][i] != df[column_name][i] or df[column_name][i] == None or df[column_name][i] == '' or df[column_name][i][:4] == 'ABS:':
                 pass
             else:
-                pmids.append(df.iloc[i][unique_id])
-        if df.iloc[i][unique_id] != df.iloc[i][unique_id] or df.iloc[i][unique_id] == None or df.iloc[i][unique_id] == '':
-            print('Your unique identifier is empty/None/NaN, please choose a unique identifier present for each row.')
+                try:
+                    if len(df[column_name][i].split()) > 150000:
+                        pass
+                    else:
+                        pmids.append(df.iloc[i][unique_id])
+                except:
+                    pmids.append(df.iloc[i][unique_id])
+            if df.iloc[i][unique_id] != df.iloc[i][unique_id] or df.iloc[i][unique_id] == None or df.iloc[i][unique_id] == '':
+                print('Your unique identifier is empty/None/NaN, please choose a unique identifier present for each row.')
+                return None
+                exit()
+            if '/' in str(df.iloc[i][unique_id]):
+                print('Your unique identifier contains "/" please choose another unique identifier, remove the "/" from the current unique identifier or replace "/" with another character.')
+                return None
+                exit()
+        if len(np.unique(pmids)) == len(pmids):
+            df = df[df[unique_id].isin(pmids)]
+        else:
+            print('It seems that one of your unique identifier is duplicate, please choose a unique identifier present for each row.')
             return None
             exit()
-        if '/' in str(df.iloc[i][unique_id]):
-            print('Your unique identifier contains "/" please choose another unique identifier, remove the "/" from the current unique identifier or replace "/" with another character.')
-            return None
-            exit()
-    if len(np.unique(pmids)) == len(pmids):
-        df = df[df[unique_id].isin(pmids)]
-    else:
-        print('It seems that one of your unique identifier is duplicate, please choose a unique identifier present for each row.')
-        return None
-        exit()
 
     update = False
 
-    retrieved_path = glob.glob(f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/*.json')
+    retrieved_path = glob.glob(f'output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_json/*.json.zip')
     if len(retrieved_path) == 0:
         update = False
     elif retrieved_path[0]:
         update = True
     else:
         update = False
-    
-    '''if restart == True and len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))]) == 0:
-        print('There is/are no temporary_df(s) in the directory. The code never started to annotate. Please change the "restart" parameter to "False". You might want to check if you get another error.')
-        return None
-        exit()
-    
-    if restart == False:
-        pass
-    else:
-        needed_restart = False
-        concat_df = None
-        if update == True:
-
-            if fielded_mmi_output == True:  
-                df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
-                df_processed = df_processed[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
-            if machine_output == True:
-                df_processed = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'rb'))
-                df_processed = df_processed[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
-
-            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))])
-            if count_temp_files > 1:
-                    for i in range(count_temp_files):
-                        df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
-                        if fielded_mmi_output == True:
-                            if df_dynamic.shape[1] == 8:
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
-                                df_processed = pd.concat([df_processed, df_dynamic])
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-                            else:
-                                needed_restart = True
-                                
-                                df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
-
-                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
-
-                                full_semantic_type_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    full_semantic_type_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
-
-                                semantic_group_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    semantic_group_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-                                    semantic_group_name_list.append(semantic_group_name_list_current)
-                                df_dynamic["semantic_group_name"] = semantic_group_name_list
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
-                                df_processed = pd.concat([df_processed, df_dynamic])
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-                        if machine_output == True:
-                            if df_dynamic.shape[1] == 12:
-                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
-                                df_processed = pd.concat([df_processed, df_dynamic])
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-                            else:
-                                needed_restart = True
-
-                                df_dynamic = df_dynamic.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
-                                df_dynamic = df_dynamic.reset_index(drop=True)
-                                df_dynamic['pos_info'] = df_dynamic['pos_info'].str.strip('[]').str.split(',')
-                                aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': lambda x: list(x), 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
-                                df_dynamic = df_dynamic.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
-                                df_dynamic = df_dynamic.reset_index()
-                                
-                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
-
-                                full_semantic_type_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    full_semantic_type_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
-
-                                semantic_group_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    semantic_group_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-                                    semantic_group_name_list.append(semantic_group_name_list_current)
-                                df_dynamic["semantic_group_name"] = semantic_group_name_list
-                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
-                                df_processed = pd.concat([df_processed, df_dynamic])
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-
-
-            df_processed = df_processed.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
-            df_processed = df_processed.reset_index(drop=True)
-            
-            concat_df = concat_df.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
-            concat_df = concat_df.reset_index(drop=True)        
-            if needed_restart == False:
-                print('The process seems to be done already, please set the restart parameter to "False"')
-                return None
-                exit()
-            else:
-                pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
-                pickle.dump(df_processed, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
-        else:
-            count_temp_files = len([name for name in os.listdir(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/') if os.path.isfile(os.path.join(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/', name))])
-            if count_temp_files > 1:
-                    for i in range(count_temp_files):
-                        df_dynamic = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/temporary_df/annotated_{column_name}_df2_{i+1}.p', 'rb'))
-                        if fielded_mmi_output == True:
-                            if df_dynamic.shape[1] == 8:
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-                            else:
-                                df_dynamic['semantic_type'] = df_dynamic['semantic_type'].str.strip('[]').str.split(',')
-
-                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
-
-                                full_semantic_type_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    full_semantic_type_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
-
-                                semantic_group_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    semantic_group_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-                                    semantic_group_name_list.append(semantic_group_name_list_current)
-                                df_dynamic["semantic_group_name"] = semantic_group_name_list
-                                df_dynamic = df_dynamic[['cui', 'umls_preferred_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'annotation', f'{unique_id}']]
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-                        if machine_output == True:
-                            if df_dynamic.shape[1] == 12:
-                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
-                                df_processed = pd.concat([df_processed, df_dynamic])
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-                            else:
-
-                                df_dynamic = df_dynamic.drop_duplicates(subset=['cui', 'trigger', 'pos_info', f'{unique_id}'])
-                                df_dynamic = df_dynamic.reset_index(drop=True)
-                                df_dynamic['pos_info'] = df_dynamic['pos_info'].str.strip('[]').str.split(',')
-                                aggregation_functions = {'occurrence': 'sum', 'negation': 'sum', 'sab': lambda x: list(x), 'trigger': lambda x: list(x), 'score': lambda x: list(x), 'pos_info': lambda x: list(x), 'prefered_name': 'first', 'semantic_type': 'first'}
-                                df_dynamic = df_dynamic.groupby(['cui', f'{unique_id}']).aggregate(aggregation_functions)
-                                df_dynamic = df_dynamic.reset_index()
-
-                                df_semantictypes_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p', 'rb'))
-                                df_semgroups_df = pickle.load(open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p', 'rb'))
-
-                                full_semantic_type_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    full_semantic_type_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        full_semantic_type_name_list_current.append(df_semantictypes_df[df_semantictypes_df.abbreviation == df_dynamic.iloc[i].semantic_type[j]].full_semantic_type_name.values[0])
-                                    full_semantic_type_name_list.append(full_semantic_type_name_list_current)
-                                df_dynamic["full_semantic_type_name"] = full_semantic_type_name_list
-
-                                semantic_group_name_list = []
-                                for i in range(len(df_dynamic)):
-                                    semantic_group_name_list_current = []
-                                    for j in range(len(df_dynamic.iloc[i].semantic_type)): 
-                                        semantic_group_name_list_current.append(df_semgroups_df[df_semgroups_df.full_semantic_type_name == df_dynamic.iloc[i].full_semantic_type_name[j]].semantic_group_name.values[0])
-                                    semantic_group_name_list.append(semantic_group_name_list_current)
-                                df_dynamic["semantic_group_name"] = semantic_group_name_list
-                                df_dynamic = df_dynamic[['cui', 'prefered_name', 'semantic_type', 'full_semantic_type_name', 'semantic_group_name', 'occurrence', 'negation', 'trigger', 'sab', 'pos_info', 'score', f'{unique_id}']]
-                                if type(concat_df) == None:
-                                    concat_df = df_dynamic
-                                else:
-                                    concat_df = pd.concat([concat_df, df_dynamic])
-
-
-            concat_df = concat_df.drop_duplicates(subset=[f'{unique_id}', 'cui'], keep='first')
-            concat_df = concat_df.reset_index(drop=True)        
-            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df.p', 'wb'))
-            pickle.dump(concat_df, open(f'./output_ParallelPyMetaMap_{column_name}_{out_form}/annotated_df/annotated_{column_name}_{unique_id}_df2.p', 'wb'))
-            update = True'''
 
     if update == True:
 
@@ -381,13 +274,14 @@ def ppmm(numbers_of_cores,
             exit()
         if len(df) < par_core:
             par_core = len(df)
+
     else:
         print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt"))
         f = open(f"./output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/{unique_id}_to_avoid.txt", "a")
         f.close()
-        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.p"))
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semantictypes.json.zip"))
         df_semantictypes(column_name, out_form)
-        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.p"))
+        print(str('Now creating ') + str(f"output_ParallelPyMetaMap_{column_name}_{out_form}/extra_resources/df_semgroups.json.zip"))
         df_semgroups(column_name, out_form)
 
 
@@ -397,28 +291,28 @@ def ppmm(numbers_of_cores,
         data = []
         for i in range(par_core):
             if i == 0:
-                current_data = (df[:round(len(df)/par_core)], i+1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                current_data = (df[:round(len(df)/par_core)], i+1, mm, cadmus, path_to_directory, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
                         machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             elif i > 0 and i+1 != par_core:
-                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                current_data = (df[(round(len(df)/par_core))*i:(round(len(df)/par_core))*(i+1)], i+1, mm, cadmus, path_to_directory, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
                         machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
             else:
-                current_data = (df[round(len(df)/par_core)*i:], i+1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+                current_data = (df[round(len(df)/par_core)*i:], i+1, mm, cadmus, path_to_directory, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
                         machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
                         prune, mm_data_version, mm_data_year, verbose, exclude_sources, restrict_to_sources, restrict_to_sts, exclude_sts, no_nums)
                 data.append(current_data)
     else:
-        data = [(df, 1, mm, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
+        data = [(df, 1, mm, cadmus, path_to_directory, column_name, out_form, unique_id, extension, extension_format, composite_phrase, fielded_mmi_output,
                         machine_output, filename, file_format, allow_acronym_variants, word_sense_disambiguation,
                         allow_large_n, strict_model, relaxed_model, allow_overmatches, allow_concept_gaps, term_processing, no_derivational_variants,
                         derivational_variants, ignore_word_order, unique_acronym_variants, prefer_multiple_concepts, ignore_stop_phrases, compute_all_mappings,
