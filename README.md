@@ -30,13 +30,14 @@ It was developed to be flexible and to automatically distribute the data to the 
 ```python
 from ParallelPyMetaMap import ppmm
 
-ppmm(NUMBER_OF_CORE(S)_TO_USE, 
-    PATH_TO_METAMAP,
-    file or path_to_file or cadmus or path_to_directory,
-    column_name, 
-    unique_id,
-    machine_output or (fielded_mmi_output and extension_format)
-    )
+if __name__ == "__main__":
+    ppmm(NUMBER_OF_CORE(S)_TO_USE, 
+        PATH_TO_METAMAP,
+        file or path_to_file or cadmus or path_to_directory,
+        column_name, 
+        unique_id,
+        machine_output or (fielded_mmi_output and extension_format)
+        )
 ```
 
 Mandatory parameters:
@@ -112,14 +113,15 @@ To produce a Fielded MMI Output, you need to use the following structure of code
 ```python
 from ParallelPyMetaMap import ppmm
 
-ppmm(NUMBER_OF_CORE(S)_TO_USE, 
-    PATH_TO_METAMAP,
-    file or path_to_file or cadmus or path_to_directory,
-    column_name, 
-    unique_id,
-    fielded_mmi_output = True,
-    extension_format = ('dict' or 'terminal')
-    )
+if __name__ == "__main__":
+    ppmm(NUMBER_OF_CORE(S)_TO_USE, 
+        PATH_TO_METAMAP,
+        file or path_to_file or cadmus or path_to_directory,
+        column_name, 
+        unique_id,
+        fielded_mmi_output = True,
+        extension_format = ('dict' or 'terminal')
+        )
 ```
 
 The results for each processed text are saved in a zipped json file within the ```'./output_ParallelPyMetaMap_{column_name}_mmi/annotated_json/{unique_id}.json.zip'``` directory. Each json file, named ```{unique_id}.json.zip```, contains dictionaries where the key is the CUI (UMLS Concept Unique Identifier) and the values are the information associated with this CUI.
@@ -150,13 +152,14 @@ To produce a Machine Output, you need to use the following structure of code:
 ```python
 from ParallelPyMetaMap import ppmm
 
-ppmm(NUMBER_OF_CORE(S)_TO_USE, 
-    PATH_TO_METAMAP,
-    file or path_to_file or cadmus or path_to_directory,
-    column_name, 
-    unique_id,
-    machine_output = True
-    )
+if __name__ == "__main__":
+    ppmm(NUMBER_OF_CORE(S)_TO_USE, 
+        PATH_TO_METAMAP,
+        file or path_to_file or cadmus or path_to_directory,
+        column_name, 
+        unique_id,
+        machine_output = True
+        )
 ```
 
 The results for each processed text are saved in a zipped json file within the ```'./output_ParallelPyMetaMap_{column_name}_mo/annotated_json/{unique_id}.json.zip'``` directory. Each json file, named ```{unique_id}.json.zip```, contains dictionaries where the key is the CUI (UMLS Concept Unique Identifier) and the values are the information associated with this CUI.
