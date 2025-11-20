@@ -1,4 +1,5 @@
 from datetime import datetime
+from io import StringIO
 import json
 import pandas as pd 
 import numpy as np
@@ -62,7 +63,7 @@ def annotation_func(df,
                 d = json.loads(d)    
             f.close()
     z.close()
-    df_semantictypes = pd.read_json(d, orient='index')
+    df_semantictypes = pd.read_json(StringIO(d), orient='index')
     semantictypes_abbr = list(df_semantictypes.abbreviation)
     semantictypes_full_semantic_type_name = list(df_semantictypes.full_semantic_type_name)
     semantictypes_dict = {semantictypes_abbr[i]: semantictypes_full_semantic_type_name[i] for i in range(len(semantictypes_abbr))}
@@ -73,7 +74,7 @@ def annotation_func(df,
                 d = json.loads(d)    
             f.close()
     z.close()
-    df_semgroups = pd.read_json(d, orient='index')
+    df_semgroups = pd.read_json(StringIO(d), orient='index')
     semanticgroup_sem_name = list(df_semgroups.full_semantic_type_name)
     semanticgroup_sema_group_name = list(df_semgroups.semantic_group_name)
     semanticgroup_dict = {semanticgroup_sem_name[i]: semanticgroup_sema_group_name[i] for i in range(len(semanticgroup_sem_name))}
