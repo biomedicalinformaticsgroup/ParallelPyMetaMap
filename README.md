@@ -243,7 +243,7 @@ Each function has three parameters:
 
 ---
 
-## ⚠️ Important
+## ⚠️ Important - Please Read!
 
 [MetaMap](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap.html) comes with a license. Please make sure you are following the terms of the license when using MetaMap and its results. 
 
@@ -307,7 +307,7 @@ ParallelPyMetaMap is just a Python wrapper for MetaMap, where extra information 
 
 ---
 
-## 📦 Version
+## 📦 Version History
 
 ### Version 0.1.6
 -> New input formats are implemented in this version:
