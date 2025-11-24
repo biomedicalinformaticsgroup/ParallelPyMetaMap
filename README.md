@@ -1,5 +1,23 @@
 # 🖥️🐍🗺️ ParallelPyMetaMap
+
 This code is to run MetaMap in parallel using Python.
+
+---
+
+## 📚 Table of Contents
+- [📋 Requirements](#-requirements)
+- [⚙️ Installation](#%EF%B8%8F-installation)
+- [🚀 Get started](#-get-started)
+- [🧮 What is the result?](#-what-is-the-result)
+- [💾 Fielded MMI Output Structure](#-fielded-mmi-output-structure)
+- [🖥️ Machine Output Structure](#%EF%B8%8F-machine-output-structure)
+- [⌛ Timeout](#-timeout)
+- [🔄 Convert JSON files to DataFrame](#-convert-json-files-to-dataframe)
+- [⚠️ Important - Please Read!](#%EF%B8%8F-important---please-read)
+- [🧰 Extra resources](#-extra-resources)
+- [❓ FAQ](#-faq)
+- [👥 Code Contributors](#-code-contributors)
+- [📦 Version History](#-version-history)
 
 ---
 
@@ -263,7 +281,16 @@ Each function has three parameters:
 
 [MetaMap Dataset](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/additional-tools/DataSetDownload.html)
 
-[cadmus](https://github.com/biomedicalinformaticsgroup/cadmus)
+[![Open in GitHub](https://img.shields.io/badge/GitHub-pymetamap-181717?logo=github)](https://github.com/AnthonyMRios/pymetamap)
+
+[![Open in GitHub](https://img.shields.io/badge/GitHub-cadmus-181717?logo=github)](https://github.com/biomedicalinformaticsgroup/cadmus)
+
+---
+
+## 🤝 Acknowledgements
+
+ParallelPyMetaMap is a continuation of the project originally created by [Anthony Rios](https://github.com/AnthonyMRios) as part of the [pymetamap](https://github.com/AnthonyMRios/pymetamap) 
+<a href="https://github.com/AnthonyMRios/pymetamap"><img src="https://img.shields.io/github/stars/AnthonyMRios/pymetamap.svg?logo=github&label=Stars" style="vertical-align:middle;"/></a> library.
 
 ---
 
