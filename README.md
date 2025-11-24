@@ -1,5 +1,7 @@
-# 🖥️🗺️ ParallelPyMetaMap
+# 🖥️🐍🗺️ ParallelPyMetaMap
 This code is to run MetaMap in parallel using Python.
+
+---
 
 ## 📋 Requirements
 
@@ -8,6 +10,8 @@ To run the code, you will need a few things:
 1) MetaMap installed locally.
 
 2) You need to git clone the project and install it.
+
+---
 
 ## ⚙️ Installation
 
@@ -21,6 +25,8 @@ pip install ./ParallelPyMetaMap
 After installation, you can remove the file if you want, using:
 
 `rm -rf ParallelPyMetaMap`
+
+---
 
 ## 🚀 Get started
 ParallelPyMetaMap utilises the number of cores available in your machine to create parallel instances of the MetaMap server to run multiple rows at the same time. To do so, ParallelPyMetaMap uses the multiprocessing library. 
@@ -45,12 +51,12 @@ if __name__ == "__main__":
 Mandatory parameters:
 - number_of_core(s)_to_use: this is a mandatory parameter with no default value. Here, you need to insert the number of core(s) you want the function to use. 
 - path_to_MetaMap: this is again a mandatory parameter with no default value. You need to insert the path to your MetaMap instance in the bin directory of MetaMap.
-- column_name = 'content_text': this parameter has 'content_text' as the default value, which is the column that contains the text from cadmus. You need to input the name of the column where the text you want to annotate is stored. 
-- unique_id = 'pmid': the default value is 'pmid'; again, this value has been chosen if your input is from cadmus. You need here to provide the name of the column that can act as a key. It must be unique, without spaces and no escape characters. 
-- extension_format = None: this parameter depends on if you are running the code using fielded_mmi_output or machine_output. The default value is None; the None value will only work if you are running the code using machine_output. If you are using fielded_mmi_output, you need to decide if you want your annotated files to be structured like in the terminal, then extension_format = 'terminal', or if you prefer your files to be Python-like dictionaries, then extension_format = 'dict'. 
+- column_name = 'content_text': this parameter has 'content_text' as the default value, which is the column that contains the text from [cadmus](https://github.com/biomedicalinformaticsgroup/cadmus). You need to input the name of the column where the text you want to annotate is stored. 
+- unique_id = 'pmid': the default value is 'pmid'; again, this value has been chosen if your input is from cadmus. You need here to provide the name of the column that can act as a key here. It must be unique, without spaces and no escape characters. 
+- extension_format = None: this parameter depends on whether you are running the code using fielded_mmi_output or machine_output. The default value is None; the None value will only work if you are running the code using machine_output. If you are using fielded_mmi_output, you need to decide if you want your annotated files to be structured like in the terminal, then extension_format = 'terminal', or if you prefer your files to be Python-like dictionaries, then extension_format = 'dict'. 
 - file = None: None has a default value, you are required to only change file or cadmus or path_to_file or path_to directory from None. 'file' you can directly input your Pandas DataFrame.
-- cadmus = None: If using a cadmus output you need to mention: abstract, content_text, pdf, html, xml, or plain_text in the column_name. Older and recent cadmus outputs are accepted.
-- path_to_file = None: takes a string to the destination of the DataFrame saved in: .json, .p, .csv, .tsv, .json.zip.
+- cadmus = None: If using a cadmus output, you need to mention: abstract, content_text, pdf, html, xml, or plain_text in the column_name. Older and recent cadmus outputs are accepted.
+- path_to_file = None: takes a string to the destination of the DataFrame saved in .json, .p, .csv, .tsv, .json.zip.
 - path_to_directory = None: takes a string to a directory of files to annotate. This directory must contain .txt and .txt.zip file formats. With this parameter, column_name will automatically be changed to 'text'.
 
 Optional parameters:
@@ -89,6 +95,8 @@ You can find below the list of all the MetaMap options implemented in ParallelPy
 
 You can find out more about these options on the National Library of Medicine website: [Documentation: Using MetaMap & options](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/documentation/UsingMetaMap.html). You will usually find the information about the options in the 'Usage Notes'.
 
+---
+
 ## 🧮 What is the result?
 
 The annotations from ParallelPyMetaMap are saved in a folder of zipped JSON files stored at ```'./output_ParallelPyMetaMap_{column_name}_{mmi (for fielded_mmi_output) or mo (for machine_output)}/annotated_json/{unique_id}.json.zip'```. You can open the files using the json and zipfile libraries an example is shown below. We also provide functions to open all the JSONs and collate the results in one Pandas DataFrame; more details later on the README.
@@ -107,6 +115,8 @@ with zipfile.ZipFile($PATH_TO_YOUR_FILE$, "r") as z:
 f.close()
 z.close()
 ```
+
+---
 
 ## 💾 Fielded MMI Output Structure
 
@@ -146,6 +156,8 @@ Each file contains:
 Other Outputs:
 - ```"./output_ParallelPyMetaMap_{column_name}_mo/extra_resources"``` contains a {unique_id}_to_avoid.txt that keeps the {unique_id} of failed attempts to annotate a text due to either insufficient memory or that they exceed the timeout. It also has 2 zipped JSON Pandas DataFrames that have the Semantic Type full name and the Semantic Group full name.
 - ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files"``` is composed of zipped files with all the annotations from MetaMap. Files are saved using {unique_id}.{extension_format}.zip.
+
+---
 
 ## 🖥️ Machine Output Structure
 
@@ -194,6 +206,8 @@ Other Outputs:
 - ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files_input"```, for MetaMap to process your input text, formatting is necessary to remove non-ASCII and escape characters. We save the input text that MetaMap is using so that you can use the pos_info to read the full sentences. Files are saved using {unique_id}.{extension_format}.zip.
 - ```"./output_ParallelPyMetaMap_{column_name}_mo/{extension_format}_files_output"``` is composed of files with all the candidates from MetaMap. Files are saved using {unique_id}.{extension_format}.zip.
 
+---
+
 ## ⌛ Timeout
 
 This section is not suitable for the Windows OS.
@@ -210,6 +224,8 @@ timeout_metamap_process has two optional parameters:
 - timeout: it has a default value of 10800 seconds. You need to input the maximum number of seconds you want ppmm to spend on one text. The value cannot be lower than 300 seconds. 
 - username: The default value is None. If you are on a shared machine, you can change None to your username on the machine so that timeout_metamap_process only looks for and terminates your MetaMap process(es).
 
+---
+
 ## 🔄 Convert JSON files to DataFrame 
 
 ```python
@@ -225,8 +241,13 @@ Each function has three parameters:
 - filtering: This parameter allows you to extract only part of the available information from the JSON files. In order to use this parameter, you need to input a list of strings from all the fields described in the previous section. You can also input the string 'id' into your list to keep the {unique_id} in the dataframe if you want to.
 - previous_df: We like dynamic generation, and because of that, we know that new results can come and that we don't like to lose time re-running code that has already been processed. Here, you can input a previous DataFrame that you have obtained using this code, and we will only extract the information from the new files to add it to your previous DataFrame. Be careful, we don't save any results, so you will have to do it. 
 
+---
+
 ## ⚠️ Important
- [MetaMap](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap.html) comes with a license. Please make sure you are following the terms of the license when using MetaMap and its results. 
+
+[MetaMap](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap.html) comes with a license. Please make sure you are following the terms of the license when using MetaMap and its results. 
+
+---
 
 ## 🧰 Extra resources
 
@@ -241,6 +262,10 @@ Each function has three parameters:
 [Documentation: Using MetaMap & options](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/documentation/UsingMetaMap.html)
 
 [MetaMap Dataset](https://lhncbc.nlm.nih.gov/ii/tools/MetaMap/additional-tools/DataSetDownload.html)
+
+[cadmus](https://github.com/biomedicalinformaticsgroup/cadmus)
+
+---
 
 ## ❓ FAQ
 
@@ -259,6 +284,28 @@ A: We do not check which version of MetaMap you are using. Please read the docum
 Q: What is the performance of ParallelPyMetaMap?
 
 ParallelPyMetaMap is just a Python wrapper for MetaMap, where extra information is added using other sources of information. We do not alter the entity recognition performance. To learn more about the performance of MetaMap, please refer to this [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2995713/).
+
+---
+
+## 👥 Code Contributors
+
+<p align="center">
+  <kbd>
+    <a href="https://github.com/Antoinelfr">
+      <img src="https://drive.google.com/uc?id=1FH6XRJuam6eMuCzwWXBAIdDacIw8PFiu" width="90" height="90" style="border-radius:50%;">
+    </a><br>
+    👉 <strong><a href="https://github.com/Antoinelfr" style="text-decoration:none; color:inherit;">Antoine</a></strong>
+  </kbd>
+  &nbsp;&nbsp;
+  <kbd>
+    <a href="https://github.com/tisimpson">
+      <img src="https://drive.google.com/uc?id=17RNcUtafryCq8sbUhaDLiRwo_KpMCAfh" width="90" height="90" style="border-radius:50%;">
+    </a><br>
+    👉 <strong><a href="https://github.com/tisimpson" style="text-decoration:none; color:inherit;">Ian</a></strong>
+  </kbd>
+</p>
+
+---
 
 ## 📦 Version
 
