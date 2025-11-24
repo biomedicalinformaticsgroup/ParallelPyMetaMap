@@ -3,7 +3,7 @@ import setuptools
 setuptools.setup(
     name="ParallelPyMetaMap",
     version="0.1.6",
-    author="Antoine Lain, Jamie Campbell, Ian Simpson",
+    author="Antoine Lain, Ian Simpson",
     author_email="Antoine.Lain@ed.ac.uk, Ian.Simpson@ed.ac.uk",
     description="This code is to run MetaMap in parallel using Python.",
     packages=setuptools.find_packages(),
@@ -12,11 +12,11 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ],
+       ],
     install_requires=[
-'pandas',
-'requests',
-'numpy'
-],
-    python_requires='>=3.6'
+      'pandas',
+      'requests',
+      'numpy'
+      ],
+   python_requires='>=3.6'
 )
