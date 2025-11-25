@@ -15,6 +15,7 @@ This code is to run MetaMap in parallel using Python.
 - [🔄 Convert JSON files to DataFrame](#-convert-json-files-to-dataframe)
 - [⚠️ Important - Please Read!](#%EF%B8%8F-important---please-read)
 - [🧰 Extra resources](#-extra-resources)
+- [🤝 Acknowledgements](#-acknowledgements)
 - [❓ FAQ](#-faq)
 - [👥 Code Contributors](#-code-contributors)
 - [📦 Version History](#-version-history)
